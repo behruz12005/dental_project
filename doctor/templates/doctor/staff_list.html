@@ -1,6 +1,11 @@
 {% extends 'doctor/base.html' %}
+{% load static %}
 
 {% block title %}Xodimlar{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'doctor/staff-management.css' %}?v=staff-manager-1">
+{% endblock %}
 
 {% block content %}
   <section class="page-card staff-page-card staff-manager">
