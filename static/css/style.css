@@ -2921,6 +2921,32 @@ body {
   border-color: rgba(150, 225, 255, 0.24);
 }
 
+.home-card-arrow,
+.back-to-top {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  line-height: 1;
+  border-radius: 50%;
+  font-family: var(--font-body);
+  flex: 0 0 auto;
+}
+
+.home-card-arrow {
+  width: 44px;
+  height: 44px;
+  font-size: 18px;
+}
+
+.back-to-top {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  padding: 0;
+  font-size: 19px;
+}
+
 .reveal {
   will-change: opacity, transform;
 }
