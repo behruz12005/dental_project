@@ -1,11 +1,6 @@
 {% extends 'doctor/base.html' %}
-{% load static %}
 
 {% block title %}Xodimlar{% endblock %}
-
-{% block extra_head %}
-  <link rel="stylesheet" href="{% static 'doctor/staff-calendar.css' %}">
-{% endblock %}
 
 {% block content %}
   <section class="page-card staff-page-card">
@@ -14,6 +9,10 @@
         <div class="eyebrow">Klinika jamoasi</div>
         <h1>Xodim userlar</h1>
         <p>Stomatolog o'z klinikasi uchun jadval boshqaradigan xodim userlarni shu yerda yaratadi.</p>
+      </div>
+      <div class="staff-hero-metric">
+        <strong>{{ memberships|length }}</strong>
+        <span>user</span>
       </div>
     </div>
 
@@ -25,7 +24,11 @@
         </div>
         <form method="post" class="staff-form-grid">
           {% csrf_token %}
+          <div class="staff-form-subtitle form-group-full">Login ma'lumotlari</div>
           {% for field in form %}
+            {% if field.name == "can_view_dashboard" %}
+              <div class="staff-form-subtitle form-group-full">Sahifa ruxsatlari</div>
+            {% endif %}
             <div class="form-group{% if field.name == 'password1' or field.name == 'password2' %} form-group-full{% endif %}">
               <label for="{{ field.id_for_label }}">{{ field.label }}</label>
               {{ field }}
@@ -51,7 +54,7 @@
               <div class="staff-member-avatar">{{ membership.user.first_name|default:membership.user.username|slice:":1"|upper }}</div>
               <div class="staff-member-copy">
                 <strong>{{ membership.user.get_full_name|default:membership.user.username }}</strong>
-                <span>{{ membership.user.username }}</span>
+                <span>@{{ membership.user.username }}</span>
                 <div class="staff-permission-list">
                   {% if membership.is_owner %}
                     <em>Hammasi</em>
