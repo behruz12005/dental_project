@@ -14,7 +14,14 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.views.decorators.http import require_POST
 
-from .forms import AppointmentForm, ClinicSetupForm, CustomerForm, LoginForm, StaffUserCreateForm
+from .forms import (
+    AppointmentForm,
+    ClinicSetupForm,
+    CustomerForm,
+    LoginForm,
+    StaffMembershipUpdateForm,
+    StaffUserCreateForm,
+)
 from .models import Appointment, Clinic, ClinicMembership, Customer, OdontogramToothHistory, OdontogramToothState
 
 
@@ -104,7 +111,11 @@ CURRENT_CLINIC_SESSION_KEY = "doctor_current_clinic_id"
 def get_current_membership(user, session=None):
     if not user.is_authenticated:
         return None
-    memberships = user.clinic_memberships.select_related("clinic").order_by("clinic__name", "id")
+    memberships = (
+        user.clinic_memberships.select_related("clinic")
+        .filter(Q(can_access_clinic=True) | Q(role=ClinicMembership.ROLE_OWNER))
+        .order_by("clinic__name", "id")
+    )
     clinic_id = None
     if session is not None:
         clinic_id = session.get(CURRENT_CLINIC_SESSION_KEY)
@@ -196,7 +207,15 @@ def clinic_context(request, **extra):
     can_view_calendar = bool(is_platform_admin or (membership and membership.has_page_permission("can_view_calendar")))
     can_edit_medical_records = bool(is_platform_admin or (membership and membership.has_page_permission("can_edit_medical_records")))
     can_manage_staff = bool(is_platform_admin or (membership and membership.has_page_permission("can_manage_staff")))
-    memberships = list(request.user.clinic_memberships.select_related("clinic").order_by("clinic__name", "id")) if request.user.is_authenticated else []
+    memberships = (
+        list(
+            request.user.clinic_memberships.select_related("clinic")
+            .filter(Q(can_access_clinic=True) | Q(role=ClinicMembership.ROLE_OWNER))
+            .order_by("clinic__name", "id")
+        )
+        if request.user.is_authenticated
+        else []
+    )
     base = {
         "current_membership": membership,
         "current_clinic": clinic,
@@ -304,7 +323,11 @@ def clinic_create(request):
 @require_POST
 def clinic_switch(request):
     clinic_id = request.POST.get("clinic_id")
-    membership = request.user.clinic_memberships.filter(clinic_id=clinic_id).first()
+    membership = (
+        request.user.clinic_memberships
+        .filter(Q(can_access_clinic=True) | Q(role=ClinicMembership.ROLE_OWNER), clinic_id=clinic_id)
+        .first()
+    )
     if not membership:
         return JsonResponse({"ok": False, "message": "Klinika topilmadi."}, status=404)
     request.session[CURRENT_CLINIC_SESSION_KEY] = membership.clinic_id
@@ -636,6 +659,7 @@ def staff_list(request):
             can_view_calendar=form.cleaned_data["can_view_calendar"],
             can_edit_medical_records=form.cleaned_data["can_edit_medical_records"],
             can_manage_staff=form.cleaned_data["can_manage_staff"],
+            can_access_clinic=form.cleaned_data["can_access_clinic"],
         )
         messages.success(request, "Xodim user yaratildi.")
         return redirect("doctor:staff_list")
@@ -648,9 +672,44 @@ def staff_list(request):
             request,
             form=form,
             memberships=memberships,
+            show_create_modal=request.method == "POST",
             page_title="Xodimlar",
             page_heading="Xodimlar",
             page_subtitle="Klinika jadvali bilan ishlaydigan userlarni boshqaring.",
+        ),
+    )
+
+
+@page_permission_required("can_manage_staff")
+def staff_edit(request, membership_id):
+    clinic = request.current_clinic
+    membership = get_object_or_404(
+        ClinicMembership.objects.select_related("user", "clinic"),
+        pk=membership_id,
+        clinic=clinic,
+    )
+    form = StaffMembershipUpdateForm(request.POST or None, instance=membership)
+    if request.method == "POST" and form.is_valid():
+        if membership.user_id == request.user.id and not membership.is_owner:
+            messages.error(request, "O'zingizning klinika ruxsatingizni shu yerdan o'zgartirmang.")
+        else:
+            form.save()
+            messages.success(request, "Xodim ruxsatlari yangilandi.")
+            return redirect("doctor:staff_list")
+
+    memberships = clinic.memberships.select_related("user").order_by("role", "user__first_name", "user__username")
+    return render(
+        request,
+        "doctor/staff_list.html",
+        clinic_context(
+            request,
+            form=StaffUserCreateForm(),
+            edit_form=form,
+            editing_membership=membership,
+            memberships=memberships,
+            page_title="Xodimni tahrirlash",
+            page_heading="Xodim ruxsatlari",
+            page_subtitle="Userning page permission va klinikaga kirish ruxsatini sozlang.",
         ),
     )
 

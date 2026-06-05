@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
 
-from .models import Appointment, Clinic, Customer
+from .models import Appointment, Clinic, ClinicMembership, Customer
 
 
 class LoginForm(AuthenticationForm):
@@ -87,6 +87,12 @@ class StaffUserCreateForm(UserCreationForm):
         required=False,
         widget=forms.CheckboxInput(attrs={"class": "form-checkbox"}),
     )
+    can_access_clinic = forms.BooleanField(
+        label="Klinikaga kirish",
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={"class": "form-checkbox"}),
+    )
 
     class Meta:
         model = User
@@ -103,7 +109,38 @@ class StaffUserCreateForm(UserCreationForm):
             "can_view_calendar",
             "can_edit_medical_records",
             "can_manage_staff",
+            "can_access_clinic",
         ]
+
+
+class StaffMembershipUpdateForm(forms.ModelForm):
+    class Meta:
+        model = ClinicMembership
+        fields = [
+            "can_access_clinic",
+            "can_view_dashboard",
+            "can_view_customers",
+            "can_add_customers",
+            "can_view_calendar",
+            "can_edit_medical_records",
+            "can_manage_staff",
+        ]
+        widgets = {
+            "can_access_clinic": forms.CheckboxInput(attrs={"class": "form-checkbox"}),
+            "can_view_dashboard": forms.CheckboxInput(attrs={"class": "form-checkbox"}),
+            "can_view_customers": forms.CheckboxInput(attrs={"class": "form-checkbox"}),
+            "can_add_customers": forms.CheckboxInput(attrs={"class": "form-checkbox"}),
+            "can_view_calendar": forms.CheckboxInput(attrs={"class": "form-checkbox"}),
+            "can_edit_medical_records": forms.CheckboxInput(attrs={"class": "form-checkbox"}),
+            "can_manage_staff": forms.CheckboxInput(attrs={"class": "form-checkbox"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.is_owner:
+            for field in self.fields.values():
+                field.disabled = True
+                field.help_text = "Stomatolog uchun bu ruxsat doim ochiq."
 
 
 class CustomerForm(forms.ModelForm):

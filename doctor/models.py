@@ -51,6 +51,7 @@ class ClinicMembership(models.Model):
     can_view_calendar = models.BooleanField("Qabul jadvali", default=True)
     can_edit_medical_records = models.BooleanField("Tibbiy kartani tahrirlash", default=False)
     can_manage_staff = models.BooleanField("Xodimlarni boshqarish", default=False)
+    can_access_clinic = models.BooleanField("Klinikaga kirish", default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
