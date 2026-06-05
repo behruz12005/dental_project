@@ -1,0 +1,894 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>DR-UMRBEK</title>
+  <meta
+    name="description"
+    content="DR-UMRBEK — zamonaviy stomatologiya klinikasi. Tish davolash, oqartirish, breket, kanal davolash va premium stomatologik xizmatlar."
+  />
+
+  <link rel="icon" type="image/png" href="{% static 'image/icon.svg' %}">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=premium-home-1" />
+
+</head>
+
+<body>
+
+  <!-- ================= NAVBAR ================= -->
+  <header class="navbar" id="navbar">
+    <div class="container nav-inner">
+
+      <a href="#home" class="logo" aria-label="DentaLux bosh sahifa">
+        <svg
+          class="logo-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 2C8.5 2 6 4 6 7c0 2 .5 3 .5 5s-.5 4-.5 6c0 2 1 4 2 4s1.5-2 2-4 1-3 2-3 1.5 1 2 3 1 4 2 4 2-2 2-4c0-2-.5-4-.5-6s.5-3 .5-5c0-3-2.5-5-6-5z"/>
+        </svg>
+
+        <span class="logo-text">
+          UMRBEK<span class="logo-accent">DR</span>
+        </span>
+      </a>
+
+      <nav class="nav-menu" id="navMenu" aria-label="Asosiy menyu">
+        <a href="#home" class="nav-link active">Home</a>
+        <a href="#doctor" class="nav-link">Shifokor</a>
+        <a href="#diseases" class="nav-link">Kasalliklar</a>
+        <a href="#services" class="nav-link">Xizmatlar</a>
+        <a href="#results" class="nav-link">Oldin/Keyin</a>
+        <a href="#contact" class="nav-link">Bog‘lanish</a>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="#contact" class="btn btn-primary btn-sm">Qabulga yozilish</a>
+
+        <button
+          class="burger"
+          id="burger"
+          aria-label="Menyuni ochish"
+          aria-expanded="false"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+
+  <main>
+
+    <!-- ================= HOME ================= -->
+    <section class="home-hero" id="home">
+
+      <!-- Ko‘k nurli background -->
+      <div class="home-bg" aria-hidden="true"></div>
+      <div class="home-glow glow-one" aria-hidden="true"></div>
+      <div class="home-glow glow-two" aria-hidden="true"></div>
+      <div class="home-glow glow-three" aria-hidden="true"></div>
+
+      <!-- Orqadagi katta tish -->
+      <div class="home-tooth" aria-hidden="true">
+        <svg viewBox="0 0 500 620" xmlns="http://www.w3.org/2000/svg">
+          <path
+            class="tooth-body"
+            d="M250 38C168 38 108 90 108 171c0 53 19 83 19 137 0 64-24 112-24 165 0 69 33 112 70 112 45 0 55-65 70-129 8-35 18-68 38-68s30 33 38 68c15 64 25 129 70 129 37 0 70-43 70-112 0-53-24-101-24-165 0-54 19-84 19-137C454 90 394 38 312 38c-27 0-44 9-62 9s-35-9-62-9Z"
+          />
+          <path class="tooth-shine" d="M170 100C137 132 128 180 142 230" />
+          <path class="tooth-shine" d="M245 72C306 51 375 86 405 143" />
+        </svg>
+
+        <span class="tooth-ring ring-one"></span>
+        <span class="tooth-ring ring-two"></span>
+      </div>
+
+      <!-- Home cardlar -->
+      <div class="container home-content">
+
+        <div class="home-title">
+          <span>Premium stomatologiya klinikasi</span>
+          <h1>Biz bilan sifatli tish tabbasumiga erishing</h1>
+        </div>
+
+        <div class="home-card-grid">
+
+          <!-- CARD 1 -->
+          <article class="home-card reveal">
+            <div class="home-card-img">
+              <svg viewBox="0 0 80 80" aria-hidden="true">
+                <path d="M40 8C27 8 18 16 18 29c0 8 3 13 3 21 0 11-4 18-4 25 0 10 5 16 10 16 6 0 8-9 10-17 1-5 2-10 5-10s4 5 5 10c2 8 4 17 10 17 5 0 10-6 10-16 0-7-4-14-4-25 0-8 3-13 3-21C66 16 57 8 44 8c-2 0-3 .5-4 .5S38 8 40 8Z"/>
+                <circle cx="34" cy="28" r="8" class="icon-dark"/>
+              </svg>
+            </div>
+
+            <div class="home-card-text">
+              <span>01</span>
+              <h3>Tish kariyesi</h3>
+              <p>Tish emalining yemirilishi va chirishi.</p>
+            </div>
+
+            <a href="#diseases" class="home-card-arrow" aria-label="Batafsil">→</a>
+          </article>
+
+          <!-- CARD 2 -->
+          <article class="home-card reveal">
+            <div class="home-card-img">
+              <svg viewBox="0 0 80 80" aria-hidden="true">
+                <path class="icon-gum" d="M13 48c8-13 19-19 34-19s24 7 30 19v18H13V48Z"/>
+                <path d="M40 8C27 8 18 16 18 29c0 8 3 13 3 21 0 11-4 18-4 25 0 10 5 16 10 16 6 0 8-9 10-17 1-5 2-10 5-10s4 5 5 10c2 8 4 17 10 17 5 0 10-6 10-16 0-7-4-14-4-25 0-8 3-13 3-21C66 16 57 8 44 8c-2 0-3 .5-4 .5S38 8 40 8Z"/>
+              </svg>
+            </div>
+
+            <div class="home-card-text">
+              <span>02</span>
+              <h3>Milk yallig‘lanishi</h3>
+              <p>Milk qizarishi, shishishi va qonashi.</p>
+            </div>
+
+            <a href="#diseases" class="home-card-arrow" aria-label="Batafsil">→</a>
+          </article>
+
+          <!-- CARD 3 -->
+          <article class="home-card reveal">
+            <div class="home-card-img">
+              <svg viewBox="0 0 80 80" aria-hidden="true">
+                <path d="M40 8C27 8 18 16 18 29c0 8 3 13 3 21 0 11-4 18-4 25 0 10 5 16 10 16 6 0 8-9 10-17 1-5 2-10 5-10s4 5 5 10c2 8 4 17 10 17 5 0 10-6 10-16 0-7-4-14-4-25 0-8 3-13 3-21C66 16 57 8 44 8c-2 0-3 .5-4 .5S38 8 40 8Z"/>
+                <circle cx="49" cy="39" r="9" class="icon-red"/>
+                <path class="icon-line" d="M59 18l6-8M64 27l9-3M60 35l9 4"/>
+              </svg>
+            </div>
+
+            <div class="home-card-text">
+              <span>03</span>
+              <h3>Tish og‘rig‘i</h3>
+              <p>Og‘riq sababini aniqlab davolash.</p>
+            </div>
+
+            <a href="#diseases" class="home-card-arrow" aria-label="Batafsil">→</a>
+          </article>
+
+          <!-- CARD 4 -->
+          <article class="home-card reveal">
+            <div class="home-card-img">
+              <svg viewBox="0 0 80 80" aria-hidden="true">
+                <path d="M40 8C27 8 18 16 18 29c0 8 3 13 3 21 0 11-4 18-4 25 0 10 5 16 10 16 6 0 8-9 10-17 1-5 2-10 5-10s4 5 5 10c2 8 4 17 10 17 5 0 10-6 10-16 0-7-4-14-4-25 0-8 3-13 3-21C66 16 57 8 44 8c-2 0-3 .5-4 .5S38 8 40 8Z"/>
+                <path class="icon-blue-line" d="M17 44c15-9 31-9 47 0"/>
+                <path class="icon-blue-line" d="M20 53c14 8 28 8 42 0"/>
+              </svg>
+            </div>
+
+            <div class="home-card-text">
+              <span>04</span>
+              <h3>Tish oqartirish</h3>
+              <p>Tish rangini xavfsiz yorqinlashtirish.</p>
+            </div>
+
+            <a href="#diseases" class="home-card-arrow" aria-label="Batafsil">→</a>
+          </article>
+
+          <!-- CARD 5 -->
+          <article class="home-card reveal">
+            <div class="home-card-img">
+              <svg viewBox="0 0 80 80" aria-hidden="true">
+                <rect x="14" y="30" width="52" height="20" rx="8" class="icon-gum"/>
+                <circle cx="25" cy="40" r="9"/>
+                <circle cx="40" cy="40" r="9"/>
+                <circle cx="55" cy="40" r="9"/>
+                <path class="bracket-line" d="M17 40h46"/>
+                <rect x="22" y="36" width="7" height="7" rx="1" class="bracket-box"/>
+                <rect x="37" y="36" width="7" height="7" rx="1" class="bracket-box"/>
+                <rect x="52" y="36" width="7" height="7" rx="1" class="bracket-box"/>
+              </svg>
+            </div>
+
+            <div class="home-card-text">
+              <span>05</span>
+              <h3>Breket</h3>
+              <p>Noto‘g‘ri tishlarni chiroyli tekislash.</p>
+            </div>
+
+            <a href="#diseases" class="home-card-arrow" aria-label="Batafsil">→</a>
+          </article>
+
+          <!-- CARD 6 -->
+          <article class="home-card reveal">
+            <div class="home-card-img">
+              <svg viewBox="0 0 80 80" aria-hidden="true">
+                <path d="M40 8C27 8 18 16 18 29c0 8 3 13 3 21 0 11-4 18-4 25 0 10 5 16 10 16 6 0 8-9 10-17 1-5 2-10 5-10s4 5 5 10c2 8 4 17 10 17 5 0 10-6 10-16 0-7-4-14-4-25 0-8 3-13 3-21C66 16 57 8 44 8c-2 0-3 .5-4 .5S38 8 40 8Z"/>
+                <path class="root-line" d="M40 25v42"/>
+                <path class="root-red" d="M32 43c4 10 12 10 16 0"/>
+              </svg>
+            </div>
+
+            <div class="home-card-text">
+              <span>06</span>
+              <h3>Kanal davolash</h3>
+              <p>Tish nervini davolab saqlab qolish.</p>
+            </div>
+
+            <a href="#diseases" class="home-card-arrow" aria-label="Batafsil">→</a>
+          </article>
+
+        </div>
+
+        <div class="home-more">
+          <a href="#doctor" class="more-btn">Ko‘proq ko‘rish ↓</a>
+        </div>
+
+      </div>
+    </section>
+
+<!-- ================= DOCTOR NEW SECTION ================= -->
+<section class="dlxdoc-section" id="doctor">
+  <div class="dlxdoc-container">
+
+    <div class="dlxdoc-header">
+      <span class="dlxdoc-mini">— SHIFOKOR HAQIDA</span>
+      <h2>
+        Tajribali stomatolog bilan
+        <span>sog‘lom tabassum</span>
+      </h2>
+      <p>
+        Bemor uchun aniq tashxis, xavfsiz davolash va tushunarli maslahat.
+      </p>
+    </div>
+
+    <div class="dlxdoc-main">
+
+      <!-- LEFT PHOTO -->
+      <div class="dlxdoc-left">
+        <div class="dlxdoc-photo-box">
+
+          <img
+            src="{% static 'image/1.jpg' %}"
+            alt="Dr Umrbek Ergashev"
+            class="dlxdoc-photo"
+            loading="lazy"
+          >
+
+          <div class="dlxdoc-exp-card">
+            <strong>12+</strong>
+            <span>yillik tajriba</span>
+          </div>
+
+          <div class="dlxdoc-name-card">
+            <span>Bosh stomatolog</span>
+            <h3>Dr Umrbek Ergashev</h3>
+            <p>Stomatolog-terapevt • Implantolog</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT INFO -->
+      <div class="dlxdoc-right">
+
+        <div class="dlxdoc-about-card">
+          <span class="dlxdoc-badge">Premium dental expert</span>
+
+          <h3>Dr Umrbek Ergashev</h3>
+
+          <p>
+            Dr Umrbek Ergashev — tish davolash, kanal davolash, estetik stomatologiya
+            va implantatsiya yo‘nalishida ishlaydigan tajribali stomatolog.
+            Asosiy maqsad — tishni imkon qadar saqlab qolish, og‘riqsiz davolash
+            va tabiiy ko‘rinadigan natija berish.
+          </p>
+        </div>
+
+        <div class="dlxdoc-stats">
+          <div>
+            <strong>5000+</strong>
+            <span>mamnun bemor</span>
+          </div>
+
+          <div>
+            <strong>12+</strong>
+            <span>yillik amaliyot</span>
+          </div>
+
+          <div>
+            <strong>100%</strong>
+            <span>steril muhit</span>
+          </div>
+        </div>
+
+        <div class="dlxdoc-info-list">
+
+          <div class="dlxdoc-info-item">
+            <div class="dlxdoc-info-icon">🦷</div>
+            <div>
+              <h4>Asosiy yo‘nalish</h4>
+              <p>Kariyes, pulpit, kanal davolash, tish tiklash va estetik stomatologiya.</p>
+            </div>
+          </div>
+
+          <div class="dlxdoc-info-item">
+            <div class="dlxdoc-info-icon">🛡️</div>
+            <div>
+              <h4>Davolash uslubi</h4>
+              <p>Og‘riqsiz muolaja, aniq reja, bemorga tushunarli izoh va xavfsiz jarayon.</p>
+            </div>
+          </div>
+
+          <div class="dlxdoc-info-item">
+            <div class="dlxdoc-info-icon">🔬</div>
+            <div>
+              <h4>Texnologiya</h4>
+              <p>Zamonaviy uskuna, sifatli materiallar va steril asboblar bilan ishlash.</p>
+            </div>
+          </div>
+
+        </div>
+
+
+
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
+<section class="ds-showcase" id="diseases">
+  <div class="container ds-container">
+
+    <div class="ds-top">
+      <div class="ds-left-text">
+        <span class="ds-line"></span>
+        <h2>MASHHUR TISH KASALLIKLARI</h2>
+        <p>
+          Eng ko‘p uchraydigan tish kasalliklari va ularni zamonaviy usulda davolash.
+        </p>
+      </div>
+
+      <div class="ds-right-text" id="dsInfo">
+        <p>
+          <strong>Kariyes.</strong>
+          Tish emalining yemirilishi va chirishi. Erta davolansa, tishni saqlab qolish oson bo‘ladi.
+        </p>
+      </div>
+    </div>
+
+    <div class="ds-slider" id="dsSlider">
+
+      <article class="ds-card"
+        data-title="Kariyes"
+        data-desc="Tish emalining yemirilishi va chirishi. Erta davolansa, tishni saqlab qolish mumkin.">
+        <div class="ds-card-inner">
+          <div class="ds-icon">🦷</div>
+          <h3>Kariyes</h3>
+          <p>Tish chirishi va emal yemirilishi.</p>
+        </div>
+      </article>
+
+      <article class="ds-card"
+        data-title="Milk yallig‘lanishi"
+        data-desc="Milk qizarishi, shishishi va qonashi bilan boshlanadi. Vaqtida davolash kerak.">
+        <div class="ds-card-inner">
+          <div class="ds-icon">🩸</div>
+          <h3>Milk yallig‘lanishi</h3>
+          <p>Milk qonashi va shishishi.</p>
+        </div>
+      </article>
+
+      <article class="ds-card"
+        data-title="Tish og‘rig‘i"
+        data-desc="Tish og‘rig‘i kariyes, nerv yallig‘lanishi yoki milk muammosidan bo‘lishi mumkin.">
+        <div class="ds-card-inner">
+          <div class="ds-icon">⚡</div>
+          <h3>Tish og‘rig‘i</h3>
+          <p>Og‘riq sababini aniqlab davolash.</p>
+        </div>
+      </article>
+
+      <article class="ds-card"
+        data-title="Tish oqartirish"
+        data-desc="Tish rangini xavfsiz oqartirish va tabassumni yanada chiroyli qilish.">
+        <div class="ds-card-inner">
+          <div class="ds-icon">✨</div>
+          <h3>Oqartirish</h3>
+          <p>Tish rangini yorqinlashtirish.</p>
+        </div>
+      </article>
+
+      <article class="ds-card"
+        data-title="Breket"
+        data-desc="Noto‘g‘ri joylashgan tishlarni tekislash va chiroyli tabassum shakllantirish.">
+        <div class="ds-card-inner">
+          <div class="ds-icon">😁</div>
+          <h3>Breket</h3>
+          <p>Tishlarni to‘g‘ri tekislash.</p>
+        </div>
+      </article>
+
+      <article class="ds-card"
+        data-title="Kanal davolash"
+        data-desc="Tish nervi yallig‘langanda kanal tozalanadi, davolanadi va tish saqlab qolinadi.">
+        <div class="ds-card-inner">
+          <div class="ds-icon">🔵</div>
+          <h3>Kanal davolash</h3>
+          <p>Tish nervini davolab saqlash.</p>
+        </div>
+      </article>
+
+    </div>
+
+    <div class="ds-button-wrap">
+      <a href="#contact" class="ds-buy-btn" id="dsMainBtn">Kariyes haqida</a>
+    </div>
+
+  </div>
+</section>
+    
+
+
+    <!-- ================= XIZMATLAR ================= -->
+    <section class="section" id="services">
+      <div class="container">
+
+        <div class="section-head">
+          <span class="eyebrow">— XIZMATLAR</span>
+          <h2 class="section-title">
+            PROFESSIONAL <span class="accent-text">DAVOLASH</span> XIZMATLARI
+          </h2>
+          <p class="section-sub">
+            Har bir bemor uchun individual yondashuv va zamonaviy stomatologik xizmatlar.
+          </p>
+        </div>
+
+        <div class="grid grid-3">
+
+          <article class="service-card">
+            <div class="service-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2C8.5 2 6 4 6 7c0 2 .5 3 .5 5s-.5 4-.5 6c0 2 1 4 2 4s1.5-2 2-4 1-3 2-3 1.5 1 2 3 1 4 2 4 2-2 2-4c0-2-.5-4-.5-6s.5-3 .5-5c0-3-2.5-5-6-5z"/>
+              </svg>
+            </div>
+            <h3>Tish davolash</h3>
+            <p>Kariyes va boshqa kasalliklarni og‘riqsiz, zamonaviy materiallar bilan davolash.</p>
+          </article>
+
+          <article class="service-card">
+            <div class="service-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                <line x1="9" y1="9" x2="9.01" y2="9"/>
+                <line x1="15" y1="9" x2="15.01" y2="9"/>
+              </svg>
+            </div>
+            <h3>Tish oqartirish</h3>
+            <p>Xavfsiz usullar yordamida tish rangini chiroyli va tabiiy oqartirish.</p>
+          </article>
+
+          <article class="service-card">
+            <div class="service-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12h4l3-9 4 18 3-9h4"/>
+              </svg>
+            </div>
+            <h3>Implantatsiya</h3>
+            <p>Yo‘qolgan tishni zamonaviy implantlar yordamida tiklash.</p>
+          </article>
+
+          <article class="service-card">
+            <div class="service-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="3"/>
+                <path d="M3 9h18M9 21V9"/>
+              </svg>
+            </div>
+            <h3>Ortodontiya</h3>
+            <p>Breket va kappa tizimlari orqali tishlarni to‘g‘ri tekislash.</p>
+          </article>
+
+          <article class="service-card">
+            <div class="service-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+            </div>
+            <h3>Diagnostika</h3>
+            <p>Rentgen va tekshiruv orqali aniq tashxis qo‘yish.</p>
+          </article>
+
+          <article class="service-card">
+            <div class="service-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2 4 7v6c0 5 3.5 8.5 8 9 4.5-.5 8-4 8-9V7l-8-5z"/>
+              </svg>
+            </div>
+            <h3>Professional tozalash</h3>
+            <p>Tish toshini olib tashlash va milk sog‘ligini yaxshilash.</p>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+
+
+
+
+
+
+
+    <!-- ================= OLDIN / KEYIN ================= -->
+    <section class="section section-alt" id="results">
+      <div class="container">
+
+        <div class="section-head">
+          <span class="eyebrow">— NATIJALAR</span>
+          <h2 class="section-title">
+            OLDIN VA <span class="accent-text">KEYIN</span>
+          </h2>
+          <p class="section-sub">
+            Bemorlarimizning haqiqiy o‘zgarishlari.
+          </p>
+        </div>
+
+        <div class="grid grid-3">
+
+          <article class="ba-card reveal">
+            <div class="ba-images">
+              <div class="ba-img">
+                <img src="{% static 'image/1.png' %}" alt="Oldin" loading="lazy" />
+                <span class="ba-tag ba-tag-before">Oldin</span>
+              </div>
+              <div class="ba-img">
+                <img src="{% static 'image/2.png' %}" alt="Keyin" loading="lazy" />
+                <span class="ba-tag ba-tag-after">Keyin</span>
+              </div>
+            </div>
+            <h3>Tish oqartirish</h3>
+            <p>Bir necha ton yorqinroq tabassum.</p>
+          </article>
+
+          <article class="ba-card reveal">
+            <div class="ba-images">
+              <div class="ba-img">
+                <img src="{% static 'image/1.png' %}" alt="Oldin" loading="lazy" />
+                <span class="ba-tag ba-tag-before">Oldin</span>
+              </div>
+              <div class="ba-img">
+                <img src="{% static 'image/2.png' %}" alt="Keyin" loading="lazy" />
+                <span class="ba-tag ba-tag-after">Keyin</span>
+              </div>
+            </div>
+            <h3>Tish oqartirish</h3>
+            <p>Bir necha ton yorqinroq tabassum.</p>
+          </article>
+
+          <article class="ba-card reveal">
+            <div class="ba-images">
+              <div class="ba-img">
+                <img src="{% static 'image/1.png' %}" alt="Oldin" loading="lazy" />
+                <span class="ba-tag ba-tag-before">Oldin</span>
+              </div>
+              <div class="ba-img">
+                <img src="{% static 'image/2.png' %}" alt="Keyin" loading="lazy" />
+                <span class="ba-tag ba-tag-after">Keyin</span>
+              </div>
+            </div>
+            <h3>Tish oqartirish</h3>
+            <p>Bir necha ton yorqinroq tabassum.</p>
+          </article>
+
+
+          <article class="ba-card reveal">
+            <div class="ba-images">
+              <div class="ba-img">
+                <img src="{% static 'image/1.png' %}" alt="Oldin" loading="lazy" />
+                <span class="ba-tag ba-tag-before">Oldin</span>
+              </div>
+              <div class="ba-img">
+                <img src="{% static 'image/2.png' %}" alt="Keyin" loading="lazy" />
+                <span class="ba-tag ba-tag-after">Keyin</span>
+              </div>
+            </div>
+            <h3>Tish oqartirish</h3>
+            <p>Bir necha ton yorqinroq tabassum.</p>
+          </article>
+
+          <article class="ba-card reveal">
+            <div class="ba-images">
+              <div class="ba-img">
+                <img src="{% static 'image/1.png' %}" alt="Oldin" loading="lazy" />
+                <span class="ba-tag ba-tag-before">Oldin</span>
+              </div>
+              <div class="ba-img">
+                <img src="{% static 'image/2.png' %}" alt="Keyin" loading="lazy" />
+                <span class="ba-tag ba-tag-after">Keyin</span>
+              </div>
+            </div>
+            <h3>Tish oqartirish</h3>
+            <p>Bir necha ton yorqinroq tabassum.</p>
+          </article>
+
+          <article class="ba-card reveal">
+            <div class="ba-images">
+              <div class="ba-img">
+                <img src="{% static 'image/1.png' %}" alt="Oldin" loading="lazy" />
+                <span class="ba-tag ba-tag-before">Oldin</span>
+              </div>
+              <div class="ba-img">
+                <img src="{% static 'image/2.png' %}" alt="Keyin" loading="lazy" />
+                <span class="ba-tag ba-tag-after">Keyin</span>
+              </div>
+            </div>
+            <h3>Tish oqartirish</h3>
+            <p>Bir necha ton yorqinroq tabassum.</p>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+
+
+
+
+<!-- ================= DAVOLASH JARAYONI ================= -->
+<section class="process-section" id="process">
+  <div class="container">
+
+    <div class="process-head">
+      <span class="eyebrow">— DAVOLASH JARAYONI</span>
+      <h2 class="section-title">
+        BEMOR UCHUN <span class="accent-text">ANIQ VA QULAY</span> YO‘L
+      </h2>
+      <p class="section-sub">
+        Klinikamizda har bir davolash bosqichi oldindan tushuntiriladi.
+        Bemor nimadan boshlanishini va nima qilinishini aniq biladi.
+      </p>
+    </div>
+
+    <div class="process-layout">
+
+      <div class="process-steps">
+
+        <button class="process-step active" data-step="0">
+          <span class="step-num">01</span>
+          <div>
+            <h3>Konsultatsiya</h3>
+            <p>Shikoyat eshitiladi, tish holati ko‘rib chiqiladi.</p>
+          </div>
+        </button>
+
+        <button class="process-step" data-step="1">
+          <span class="step-num">02</span>
+          <div>
+            <h3>Diagnostika</h3>
+            <p>Kerak bo‘lsa rentgen yoki tekshiruv qilinadi.</p>
+          </div>
+        </button>
+
+        <button class="process-step" data-step="2">
+          <span class="step-num">03</span>
+          <div>
+            <h3>Davolash rejasi</h3>
+            <p>Narx, vaqt va davolash usuli tushuntiriladi.</p>
+          </div>
+        </button>
+
+        <button class="process-step" data-step="3">
+          <span class="step-num">04</span>
+          <div>
+            <h3>Davolash</h3>
+            <p>Og‘riqsiz va xavfsiz usulda muolaja bajariladi.</p>
+          </div>
+        </button>
+
+      </div>
+
+      <div class="process-preview">
+        <div class="process-card active" data-content="0">
+          <div class="process-icon">💬</div>
+          <h3>Konsultatsiya</h3>
+          <p>
+            Avval bemorning muammosi eshitiladi. Qaysi tish og‘riyapti,
+            qachondan beri muammo borligi va oldin davolanganmi — hammasi aniqlanadi.
+          </p>
+        </div>
+
+        <div class="process-card" data-content="1">
+          <div class="process-icon">🔎</div>
+          <h3>Diagnostika</h3>
+          <p>
+            Tish ichki holatini ko‘rish uchun tekshiruv qilinadi.
+            Bu davolashni noto‘g‘ri boshlamaslik va aniq tashxis qo‘yish uchun kerak.
+          </p>
+        </div>
+
+        <div class="process-card" data-content="2">
+          <div class="process-icon">📋</div>
+          <h3>Davolash rejasi</h3>
+          <p>
+            Shifokor bemorga nima qilinishini, qancha vaqt ketishini,
+            taxminiy narxni va eng yaxshi davolash yo‘lini tushuntiradi.
+          </p>
+        </div>
+
+        <div class="process-card" data-content="3">
+          <div class="process-icon">🦷</div>
+          <h3>Davolash</h3>
+          <p>
+            Muolaja steril asboblar, sifatli materiallar va bemor uchun
+            qulay sharoitda bajariladi. Asosiy maqsad — tishni saqlab qolish.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ================= BOG‘LANISH ================= -->
+<section class="section section-alt" id="contact">
+  <div class="container contact-grid">
+
+    <div class="contact-info">
+      <span class="eyebrow">— BOG‘LANISH</span>
+      <h2 class="section-title">
+        QABULGA <span class="accent-text">YOZILING</span>
+      </h2>
+      <p class="section-sub">
+        Formani to‘ldiring — operatorimiz siz bilan bog‘lanadi.
+      </p>
+
+      <ul class="contact-list">
+        <li>
+          <strong>Telefon:</strong>
+          <a href="tel:+998901234567">+998 (90) 123-45-67</a>
+        </li>
+        <li>
+          <strong>Manzil:</strong>
+          <span>Toshkent shahri, Amir Temur ko‘chasi, 12-uy</span>
+        </li>
+        <li>
+          <strong>Ish vaqti:</strong>
+          <span>Du–Sh: 09:00 — 24:00</span>
+        </li>
+      </ul>
+    </div>
+
+    <form class="contact-form" method="post" action="{% url 'home' %}">
+    {% csrf_token %}
+
+    <div class="form-group">
+        <label for="name">Ismingiz</label>
+        <input
+        type="text"
+        id="name"
+        name="name"
+        placeholder="Ismingizni kiriting"
+        required
+        />
+    </div>
+
+    <div class="form-group">
+        <label for="phone">Telefon raqamingiz</label>
+        <input
+        type="tel"
+        id="phone"
+        name="phone"
+        placeholder="+998 (__) ___-__-__"
+        required
+        />
+    </div>
+
+    <div class="form-group">
+        <label for="message">Xabar</label>
+        <textarea
+        id="message"
+        name="message"
+        rows="4"
+        placeholder="Qaysi xizmat sizni qiziqtiradi?"
+        ></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-block">
+        Yuborish →
+    </button>
+
+    {% if messages %}
+        <div class="form-messages">
+        {% for message in messages %}
+            <p class="form-status {{ message.tags }}">
+            {{ message }}
+            </p>
+        {% endfor %}
+        </div>
+    {% endif %}
+    </form>
+
+  </div>
+</section>
+
+  </main>
+
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="footer">
+    <div class="container footer-grid">
+
+      <div class="footer-brand">
+        <a href="#home" class="logo">
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 2C8.5 2 6 4 6 7c0 2 .5 3 .5 5s-.5 4-.5 6c0 2 1 4 2 4s1.5-2 2-4 1-3 2-3 1.5 1 2 3 1 4 2 4 2-2 2-4c0-2-.5-4-.5-6s.5-3 .5-5c0-3-2.5-5-6-5z"/>
+          </svg>
+          <span class="logo-text">DENTA<span class="logo-accent">LUX</span></span>
+        </a>
+
+        <p class="footer-desc">
+          Premium stomatologiya klinikasi. Sog‘lom tabassum — bizning asosiy missiyamiz.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Manzil</h4>
+        <p>Toshkent shahri,<br>Amir Temur ko‘chasi, 12-uy</p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Bog‘lanish</h4>
+        <p>
+          <a href="tel:+998901234567">+998 (90) 123-45-67</a><br>
+          <a href="mailto:info@dentalux.uz">info@dentalux.uz</a>
+        </p>
+
+        <div class="socials">
+          <a href="#" class="social-link" aria-label="Instagram">IG</a>
+          <a href="#" class="social-link" aria-label="Telegram">TG</a>
+          <a href="#" class="social-link" aria-label="Facebook">FB</a>
+        </div>
+      </div>
+
+      <div class="footer-back">
+        <span>Yuqoriga</span>
+        <button class="back-to-top" id="backToTop" aria-label="Yuqoriga ko‘tarilish">
+          ↑
+        </button>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom container">
+      <p>© 2025 DentaLux. Barcha huquqlar himoyalangan.</p>
+      <p>Premium stomatologiya • Toshkent</p>
+    </div>
+  </footer>
+
+
+  <!-- JavaScript faqat shu yerda -->
+  <script src="{% static 'js/main.js' %}?v=premium-home-1" defer></script>
+</body>
+</html>

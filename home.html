@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stomatologiya Klinikasi - Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">🦷</div>
+      <div>
+        <h2>DentCare Pro</h2>
+        <p>Stomatologiya Klinikasi</p>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-title">Asosiy</div>
+
+      <button class="nav-item active" data-title="Dashboard">
+        <span>📊</span>
+        Dashboard
+      </button>
+
+      <button class="nav-item" data-title="Bemorlar">
+        <span>👥</span>
+        Bemorlar
+        <b>12</b>
+      </button>
+
+      <button class="nav-item" data-title="Qabul jadvali">
+        <span>📅</span>
+        Qabul jadvali
+      </button>
+
+      <button class="nav-item" data-title="Shifokorlar">
+        <span>👨‍⚕️</span>
+        Shifokorlar
+      </button>
+
+      <div class="nav-title">Boshqaruv</div>
+
+      <button class="nav-item" data-title="Xizmatlar">
+        <span>🛠️</span>
+        Xizmatlar
+      </button>
+
+      <button class="nav-item" data-title="Davolash tarixi">
+        <span>🕒</span>
+        Davolash tarixi
+      </button>
+
+      <button class="nav-item" data-title="To‘lovlar">
+        <span>💳</span>
+        To‘lovlar
+      </button>
+
+      <button class="nav-item" data-title="Hisobotlar">
+        <span>📈</span>
+        Hisobotlar
+      </button>
+
+      <div class="nav-title">Tizim</div>
+
+      <button class="nav-item" data-title="Sozlamalar">
+        <span>⚙️</span>
+        Sozlamalar
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="admin-avatar">AK</div>
+      <div>
+        <h4>Azim Karimov</h4>
+        <p>Administrator</p>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-btn" id="menuBtn">☰</button>
+        <h1 id="pageTitle">Dashboard</h1>
+      </div>
+
+      <div class="topbar-right">
+        <div class="search-box">
+          <span>🔎</span>
+          <input type="text" id="searchInput" placeholder="Bemor qidirish..." />
+        </div>
+
+        <button class="notification-btn">
+          🔔
+          <i></i>
+        </button>
+
+        <div class="profile">
+          <div class="profile-avatar">AK</div>
+          <div>
+            <h4>Azim Karimov</h4>
+            <p>Admin</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="content">
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">📅</div>
+          <div>
+            <p>Bugungi qabul</p>
+            <h2>18</h2>
+            <span class="up">▲ 12% kechaga nisbatan</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon teal">👥</div>
+          <div>
+            <p>Jami bemorlar</p>
+            <h2>1 284</h2>
+            <span class="up">▲ 8% o‘tgan oyga nisbatan</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green">💰</div>
+          <div>
+            <p>Oylik daromad</p>
+            <h2>42 500 000 <small>so‘m</small></h2>
+            <span class="up">▲ 15% o‘tgan oyga nisbatan</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon red">💬</div>
+          <div>
+            <p>Qarzdorlik</p>
+            <h2>6 200 000 <small>so‘m</small></h2>
+            <span class="down">▼ 3% o‘tgan oyga nisbatan</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="card">
+          <div class="card-header">
+            <h3>Haftalik daromad</h3>
+            <button class="refresh-btn" id="refreshChartBtn">Yangilash</button>
+          </div>
+
+          <div class="card-body">
+            <div class="chart-container" id="chartContainer"></div>
+
+            <div class="chart-legend">
+              <span><i class="income-dot"></i> Daromad</span>
+              <span><i class="expense-dot"></i> Xarajat</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Bugungi qabullar</h3>
+            <button class="link-btn">Barchasini ko‘rish</button>
+          </div>
+
+          <div class="card-body">
+            <div class="appointment-list" id="appointmentList"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid second">
+        <div class="card patients-card">
+          <div class="card-header">
+            <h3>Oxirgi bemorlar</h3>
+            <button class="link-btn">Barchasini ko‘rish</button>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Bemor ismi</th>
+                  <th>Telefon</th>
+                  <th>Xizmat</th>
+                  <th>To‘lov</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="patientsBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card doctors-card">
+          <div class="card-header">
+            <h3>Shifokorlar</h3>
+            <button class="link-btn">Barchasi</button>
+          </div>
+
+          <div class="card-body">
+            <div class="doctor-grid" id="doctorGrid"></div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,798 @@
+{% extends 'doctor/base.html' %}
+{% load static %}
+
+{% block title %}{{ customer.full_name }} - Odontogram{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'doctor/odontogram/styles.css' %}">
+{% endblock %}
+
+{% block content %}
+  <section class="page-card odontogram-page-card">
+    <div class="page-header doctor-page-header">
+      <div>
+        <div class="eyebrow">Mijoz kartasi</div>
+        <h1>{{ customer.full_name }}</h1>
+        <p>
+          {{ customer.phone|default:"Telefon kiritilmagan" }}
+          {% if customer.birth_date %}
+            • {{ customer.birth_date|date:'d.m.Y' }}
+            {% if customer.age %}• {{ customer.age }} yosh{% endif %}
+          {% endif %}
+          • {{ customer.get_referred_by_display }}
+        </p>
+      </div>
+      <div class="action-row">
+        <a class="btn" href="{% url 'doctor:customer_list' %}">Ro'yxatga qaytish</a>
+        {% if can_manage_patients %}
+          <a class="btn" href="{% url 'doctor:customer_update' customer.pk %}">Mijozni edit qilish</a>
+          <button class="btn btn-primary" id="saveOdontogramButton" type="button">Saqlash</button>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if not can_manage_patients %}
+      <div class="save-status is-ok">
+        Siz xodim sifatida kartani ko'rishingiz mumkin. Tibbiy o'zgartirish va tarix qo'shish faqat stomatolog uchun ochiq.
+      </div>
+    {% endif %}
+
+    <div id="saveStatusBox" class="save-status" hidden></div>
+
+    <div class="odontogram-root doctor-odontogram-root">
+      <header class="topbar doctor-odontogram-topbar">
+        <div class="brand">
+          <div class="dot"></div>
+          <div>
+            <div class="title" data-i18n="app.title">Odontogram moduli</div>
+            <div class="subtitle" data-i18n="app.subtitle">Tishni tanlang va holatini belgilang.</div>
+          </div>
+        </div>
+
+        <div class="topbar-actions doctor-topbar-actions">
+          <div class="doctor-chip-group">
+            <div class="topbar-group dropdown" id="languageDropdown">
+              <button id="languageButton" class="btn btn-ghost btn-sm" aria-haspopup="menu" aria-expanded="false"></button>
+              <div id="languageMenu" class="dropdown-menu hidden" role="menu"></div>
+            </div>
+
+            <button id="themeToggle" class="btn-theme" type="button" aria-label="Toggle theme"></button>
+
+            <div class="topbar-group dropdown" id="numberingDropdown">
+              <button id="numberingButton" class="btn btn-ghost btn-sm" aria-haspopup="menu" aria-expanded="false"></button>
+              <div id="numberingMenu" class="dropdown-menu hidden" role="menu"></div>
+            </div>
+          </div>
+
+          <div class="doctor-topbar-note">
+            <span class="doctor-status-dot"></span>
+            <span>Asosiy til: Uzbek</span>
+          </div>
+        </div>
+
+        <button id="btnStatusExport" class="frontend-hidden-action" type="button" tabindex="-1" aria-hidden="true">Export</button>
+        <button id="btnStatusImport" class="frontend-hidden-action" type="button" tabindex="-1" aria-hidden="true">Import</button>
+        <input id="statusImportInput" type="file" accept="application/json" hidden>
+      </header>
+
+      <main class="layout">
+        <section class="chart">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title" data-i18n="chart.title">Dental chart</div>
+              <div class="chart-hint" data-i18n="chart.hint">Tishni tanlang. Bir nechta tish uchun CTRL bilan bosing.</div>
+            </div>
+
+            <div class="chart-actions">
+              <button id="btnOcclView" class="btn btn-toggle btn-icon" type="button" aria-pressed="true" data-xline="1"></button>
+              <button id="btnWisdomVisible" class="btn btn-toggle btn-icon" type="button" aria-pressed="true" data-xline="1"></button>
+              <button id="btnBoneVisible" class="btn btn-toggle btn-icon" type="button" aria-pressed="true" data-xline="1"></button>
+              <button id="btnPulpVisible" class="btn btn-toggle btn-icon" type="button" aria-pressed="true" data-xline="1"></button>
+              <button id="btnSelectNoneChart" class="btn btn-ghost btn-icon" type="button">
+                <img id="iconNoSelection" class="icon-img" src="" alt="" aria-hidden="true">
+              </button>
+            </div>
+          </div>
+
+          <div id="toothGrid" class="tooth-grid" aria-label="Tooth grid"></div>
+        </section>
+
+        <aside class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title-row">
+                <span class="panel-title" data-i18n="panel.controls">Boshqaruv</span>
+                <div class="panel-title-actions">
+                  <button id="btnSelectNone" class="btn btn-ghost btn-icon btn-danger" type="button" data-i18n="panel.clearSelection">Tanlovni tozalash</button>
+                  <button id="btnToggleControlsCard" class="icon-btn" type="button">
+                    <span class="toggle-icon" aria-hidden="true">-</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="panel-subtitle">
+                <span data-i18n="panel.activeTooth">Tanlangan tish</span>:
+                <span id="activeToothLabel" class="pill">-</span>
+              </div>
+
+              <div id="controlsActions" class="panel-subtitle select-actions frontend-pruned hidden">
+                <div class="select-actions-row">
+                  <button id="btnSelectAll" class="btn btn-ghost btn-icon" type="button">All</button>
+                  <button id="btnSelectAllPresent" class="btn btn-ghost btn-icon" type="button">Teeth</button>
+                  <button id="btnSelectPermanent" class="btn btn-ghost btn-icon" type="button">Permanent</button>
+                  <button id="btnSelectMilk" class="btn btn-ghost btn-icon" type="button">Primary</button>
+                  <button id="btnSelectImplants" class="btn btn-ghost btn-icon" type="button">Implants</button>
+                  <button id="btnSelectAllMissing" class="btn btn-ghost btn-icon" type="button">Missing</button>
+                </div>
+                <div class="select-actions-row">
+                  <button id="btnSelectUpper" class="btn btn-ghost btn-icon" type="button">Upper</button>
+                  <button id="btnSelectUpperFront" class="btn btn-ghost btn-icon" type="button">Upper front</button>
+                  <button id="btnSelectUpperMolar" class="btn btn-ghost btn-icon" type="button">Upper molars</button>
+                  <button id="btnSelectLower" class="btn btn-ghost btn-icon" type="button">Lower</button>
+                  <button id="btnSelectLowerFront" class="btn btn-ghost btn-icon" type="button">Lower front</button>
+                  <button id="btnSelectLowerMolar" class="btn btn-ghost btn-icon" type="button">Lower molars</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="warnings" class="warnings"></div>
+          </div>
+
+          <div class="panel-body">
+            <section class="card frontend-pruned hidden" id="statusCard">
+              <div class="card-title card-title-row">
+                <span>Statuses</span>
+                <button id="btnToggleStatusCard" class="icon-btn" type="button">
+                  <span class="toggle-icon" aria-hidden="true">-</span>
+                </button>
+              </div>
+              <div class="row status-actions" id="statusCardBody">
+                <button id="btnResetAll" class="btn btn-ghost btn-sm" type="button">Reset mouth</button>
+                <button id="btnPrimaryDentition" class="btn btn-ghost btn-sm" type="button">Primary dentition</button>
+                <button id="btnMixedDentition" class="btn btn-ghost btn-sm" type="button">Mixed dentition</button>
+                <button id="btnEdentulous" class="btn btn-toggle btn-sm" type="button" aria-pressed="false">Edentulous</button>
+              </div>
+              <div class="row status-extra-row">
+                <span>Add:</span>
+                <select id="statusExtraSelect"></select>
+                <button id="statusExtraApply" class="btn btn-ghost btn-sm" type="button">OK</button>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="card-title card-title-row">
+                <span data-i18n="tooth.title">Tish tafsilotlari</span>
+                <button id="btnResetTooth" class="btn btn-ghost btn-sm" type="button" data-i18n="tooth.reset">Qayta tiklash</button>
+              </div>
+              <div class="row">
+                <span data-i18n="tooth.baseLabel">Baza</span>
+                <select id="toothSelect"></select>
+              </div>
+              <div id="bridgeUnitRow" class="row frontend-pruned hidden">
+                <span>Prosthesis</span>
+                <select id="bridgeUnitSelect"></select>
+              </div>
+              <label id="extractionRow" class="row frontend-pruned hidden">
+                <input type="checkbox" id="extractionWound">
+                <span>fresh extraction wound</span>
+              </label>
+              <label id="missingClosedRow" class="row frontend-pruned hidden">
+                <input type="checkbox" id="missingClosed">
+                <span>gap closed after extraction</span>
+              </label>
+              <div id="crownRow" class="row frontend-pruned hidden">
+                <span>Crown</span>
+                <select id="crownSelect"></select>
+              </div>
+              <div id="brokenCrownRow" class="row inline-checks contact-row frontend-pruned hidden">
+                <label><input type="checkbox" id="brokenMesial"><span>mesial</span></label>
+                <label><input type="checkbox" id="brokenIncisal"><span>incisal</span></label>
+                <label><input type="checkbox" id="brokenDistal"><span>distal</span></label>
+              </div>
+              <div id="contactPointRow" class="row inline-checks contact-row frontend-pruned hidden">
+                <label><input type="checkbox" id="contactMesial"><span>mesial contact missing</span></label>
+                <label><input type="checkbox" id="contactDistal"><span>distal contact missing</span></label>
+              </div>
+              <div id="bruxismRow" class="row inline-checks bruxism-row frontend-pruned hidden">
+                <label><input type="checkbox" id="bruxismWear"><span>Incisal wear</span></label>
+                <label><input type="checkbox" id="bruxismNeckWear"><span>Cervical wear</span></label>
+              </div>
+              <div id="crownActionsRow" class="row inline-checks bridge-actions-row frontend-pruned hidden">
+                <label id="bridgePillarRow" class="inline-check"><input type="checkbox" id="bridgePillar"><span>Bridge abutment</span></label>
+                <label id="extractionPlanRow" class="inline-check"><input type="checkbox" id="extractionPlan"><span>Planned extraction</span></label>
+              </div>
+              <label id="crownReplaceRow" class="row frontend-pruned hidden">
+                <input type="checkbox" id="crownReplace">
+                <span>Crown replacement needed</span>
+              </label>
+              <label id="crownNeededRow" class="row frontend-pruned hidden">
+                <input type="checkbox" id="crownNeeded">
+                <span>Crown needed</span>
+              </label>
+            </section>
+
+            <section id="cariesSection" class="card">
+              <div class="card-title card-title-row">
+                <span data-i18n="caries.title">Karies</span>
+                <button id="btnToggleCariesCard" class="icon-btn" type="button"><span class="toggle-icon" aria-hidden="true">-</span></button>
+              </div>
+              <div class="hint" data-i18n="caries.hint">Kariyes yuzalarini tanlang</div>
+              <div id="cariesChecks" class="check-grid"></div>
+            </section>
+
+            <section id="fillingSection" class="card">
+              <div class="card-title card-title-row">
+                <span data-i18n="filling.title">Plomba va tiklovchi vositalar</span>
+                <button id="btnToggleFillingCard" class="icon-btn" type="button"><span class="toggle-icon" aria-hidden="true">-</span></button>
+              </div>
+              <div class="row">
+                <span data-i18n="filling.typeLabel">Turi</span>
+                <select id="fillingSelect"></select>
+              </div>
+              <div id="fillingSurfaceChecks" class="check-grid hidden"></div>
+              <div id="fissureSealingRow" class="row fissure-row">
+                <button id="fissureSealingButton" class="fissure-button" type="button" aria-pressed="false">
+                  <span data-i18n="filling.fissureSealing">Yoriqni muhrlash</span>
+                </button>
+                <input type="checkbox" id="fissureSealing" hidden>
+              </div>
+            </section>
+
+            <section id="endoSection" class="card">
+              <div class="card-title card-title-row">
+                <span data-i18n="endo.title">Ildiz</span>
+                <button id="btnToggleEndoCard" class="icon-btn" type="button"><span class="toggle-icon" aria-hidden="true">-</span></button>
+              </div>
+              <div class="hint" data-i18n="endo.hint">Ildiz holatini tanlang</div>
+              <div class="row">
+                <select id="endoSelect"></select>
+              </div>
+              <div class="row inline-checks">
+                <label><input type="checkbox" id="pulpInflam"><span data-i18n="endo.pulpitis">Pulpit</span></label>
+                <label><input type="checkbox" id="endoResection"><span data-i18n="endo.resection">Rezeksiya qilingan tish</span></label>
+                <label><input type="checkbox" id="parapulpalPin"><span data-i18n="endo.parapulpalPin">Parapulpal igna</span></label>
+              </div>
+            </section>
+
+            <section id="inflammationSection" class="card">
+              <div class="card-title card-title-row">
+                <span data-i18n="inflammation.title">Periodontit va yallig'lanishlar</span>
+                <button id="btnToggleInflammationCard" class="icon-btn" type="button"><span class="toggle-icon" aria-hidden="true">-</span></button>
+              </div>
+              <div id="mobilityRow" class="row">
+                <span data-i18n="inflammation.mobilityLabel">Harakatchanlik</span>
+                <select id="mobilitySelect"></select>
+              </div>
+              <div id="modsChecks" class="check-grid"></div>
+            </section>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <section class="history-shell">
+      <div class="history-head">
+        <div class="history-head-row">
+          <div>
+            <div class="eyebrow">Tarix</div>
+            <h2 id="historyTitle">Oxirgi 10 ta o'zgarish</h2>
+            <p id="historySubtitle">Tish tanlanmasa, mijoz bo'yicha oxirgi yozuvlar ko'rinadi.</p>
+          </div>
+          <div class="history-toolbar">
+            <span class="history-toolbar-label">Filter</span>
+            <div id="historyFilterBar" class="history-filter-bar">
+              <button class="history-filter-button is-active" type="button" data-filter="all">Hammasi</button>
+              <button class="history-filter-button" type="button" data-filter="change">Tish o'zgarishi</button>
+              <button class="history-filter-button" type="button" data-filter="payment">Pul to'langan</button>
+              <button class="history-filter-button" type="button" data-filter="note">Describe yozilgan</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <form id="historyForm" class="history-form">
+        <div class="history-form-header">
+          <div>
+            <div id="historyFormTitle" class="history-form-title">Tarix yozuvi qo'shish</div>
+            <div id="historyFormHint" class="history-form-hint">Izoh qoldirish uchun tishni tanlang.</div>
+          </div>
+          <div class="history-form-actions">
+            <button id="historyCancelButton" class="btn" type="button" hidden>Bekor qilish</button>
+            <button id="historySubmitButton" class="btn btn-primary" type="submit" {% if not can_manage_patients %}disabled{% endif %}>Timelinega qo'shish</button>
+          </div>
+        </div>
+        <div class="history-compact-row">
+          <div class="history-column">
+            <div class="history-column-title">Qo'lda izoh qo'shish</div>
+            <label class="history-field history-field-grow">
+              <span>Izoh</span>
+              <textarea id="historyNoteInput" class="history-textarea" rows="4" placeholder="Masalan: 36-tishga vaqtinchalik nazorat belgilandi." {% if not can_manage_patients %}disabled{% else %}disabled{% endif %}></textarea>
+            </label>
+          </div>
+          <div class="history-column">
+            <div class="history-column-title">To'lov va qo'shimcha</div>
+            <label class="history-field">
+              <span>To'lov summasi</span>
+              <input id="historyPaymentAmountInput" class="history-input" type="number" min="0" step="0.01" placeholder="0" {% if not can_manage_patients %}disabled{% else %}disabled{% endif %}>
+            </label>
+            <label class="history-field">
+              <span>Describe</span>
+              <textarea id="historyPaymentDescriptionInput" class="history-textarea history-textarea-small" rows="2" placeholder="To'lov yoki xizmat izohi..." {% if not can_manage_patients %}disabled{% else %}disabled{% endif %}></textarea>
+            </label>
+            <label class="history-field history-field-images">
+              <span>3 ta rasm</span>
+              <input id="historyImagesInput" class="history-input" type="file" accept="image/*" multiple {% if not can_manage_patients %}disabled{% else %}disabled{% endif %}>
+              <small class="history-help">Ko'pi bilan 3 ta rasm.</small>
+              <div id="historyImagesPreview" class="history-preview"></div>
+            </label>
+          </div>
+        </div>
+      </form>
+
+      <div id="historyTimeline" class="timeline"></div>
+      <div id="historyEmpty" class="history-empty" hidden>Hali tarix yozuvlari yo'q.</div>
+    </section>
+  </section>
+
+  {{ initial_payload|json_script:"odontogram-initial-data" }}
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    window.__ODONTOGRAM_INITIAL_STATE__ = JSON.parse(
+      document.getElementById("odontogram-initial-data").textContent
+    );
+  </script>
+  <script type="module" src="{% static 'doctor/odontogram/app.js' %}"></script>
+  <script>
+    (function () {
+      const saveButton = document.getElementById("saveOdontogramButton");
+      const canManagePatients = {{ can_manage_patients|yesno:"true,false" }};
+      const statusBox = document.getElementById("saveStatusBox");
+      const saveUrl = "{% url 'doctor:customer_odontogram_save' customer.pk %}";
+      const historyUrl = "{% url 'doctor:customer_history_feed' customer.pk %}";
+      const historyAddUrl = "{% url 'doctor:customer_history_add' customer.pk %}";
+      const csrfToken = "{{ csrf_token }}";
+      const historyTitle = document.getElementById("historyTitle");
+      const historySubtitle = document.getElementById("historySubtitle");
+      const historyTimeline = document.getElementById("historyTimeline");
+      const historyEmpty = document.getElementById("historyEmpty");
+      const historyForm = document.getElementById("historyForm");
+      const historyFormTitle = document.getElementById("historyFormTitle");
+      const historySubmitButton = document.getElementById("historySubmitButton");
+      const historyCancelButton = document.getElementById("historyCancelButton");
+      const historyNoteInput = document.getElementById("historyNoteInput");
+      const historyPaymentAmountInput = document.getElementById("historyPaymentAmountInput");
+      const historyPaymentDescriptionInput = document.getElementById("historyPaymentDescriptionInput");
+      const historyImagesInput = document.getElementById("historyImagesInput");
+      const historyImagesPreview = document.getElementById("historyImagesPreview");
+      const historyFormHint = document.getElementById("historyFormHint");
+      const historyFilterBar = document.getElementById("historyFilterBar");
+      const state = {
+        activeTooth: null,
+        editingHistoryId: null,
+        historyItems: [],
+        rawHistoryItems: [],
+        historyFilter: "all"
+      };
+
+      const HISTORY_FILTER_META = {
+        all: { label: "Hammasi" },
+        change: { label: "Tish o'zgarishi" },
+        payment: { label: "Pul to'langan" },
+        note: { label: "Describe yozilgan" }
+      };
+
+      function showStatus(text, ok) {
+        statusBox.hidden = false;
+        statusBox.textContent = text;
+        statusBox.className = ok ? "save-status is-ok" : "save-status is-error";
+      }
+
+      function escapeHtml(value) {
+        return String(value || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function getHistoryKind(item) {
+        if (item && item.hasPayment) {
+          return "payment";
+        }
+        if (item && item.hasChange) {
+          return "change";
+        }
+        if (item && item.hasDescription) {
+          return "note";
+        }
+        return "change";
+      }
+
+      function getFilteredHistoryItems() {
+        if (state.historyFilter === "all") {
+          return state.rawHistoryItems.slice();
+        }
+        return state.rawHistoryItems.filter((item) => getHistoryKind(item) === state.historyFilter);
+      }
+
+      function syncHistoryFilterButtons() {
+        historyFilterBar.querySelectorAll("[data-filter]").forEach((button) => {
+          const isActive = button.getAttribute("data-filter") === state.historyFilter;
+          button.classList.toggle("is-active", isActive);
+          button.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
+      }
+
+      function syncHistoryFormState() {
+        const hasTooth = Number.isInteger(state.activeTooth);
+        if (!hasTooth && state.editingHistoryId) {
+          state.editingHistoryId = null;
+        }
+        historySubmitButton.disabled = !canManagePatients || !hasTooth;
+        historyNoteInput.disabled = !canManagePatients || !hasTooth;
+        historyPaymentAmountInput.disabled = !canManagePatients || !hasTooth;
+        historyPaymentDescriptionInput.disabled = !canManagePatients || !hasTooth;
+        historyImagesInput.disabled = !canManagePatients || !hasTooth;
+        if (state.editingHistoryId) {
+          historyFormTitle.textContent = "Tarix yozuvini tahrirlash";
+          historySubmitButton.textContent = "O'zgarishni saqlash";
+          historyCancelButton.hidden = false;
+        } else {
+          historyFormTitle.textContent = "Tarix yozuvi qo'shish";
+          historySubmitButton.textContent = "Timelinega qo'shish";
+          historyCancelButton.hidden = true;
+        }
+        historyFormHint.textContent = hasTooth
+          ? state.activeTooth + "-tish uchun " + (state.editingHistoryId ? "yozuvni edit qilishingiz mumkin." : "qo'lda izoh qoldirishingiz mumkin.")
+          : "Izoh qoldirish uchun tishni tanlang.";
+      }
+
+      function resetHistoryForm(keepTooth) {
+        state.editingHistoryId = null;
+        historyNoteInput.value = "";
+        historyPaymentAmountInput.value = "";
+        historyPaymentDescriptionInput.value = "";
+        historyImagesInput.value = "";
+        historyImagesPreview.innerHTML = "";
+        if (!keepTooth) {
+          state.activeTooth = null;
+        }
+        syncHistoryFormState();
+      }
+
+      function updateHistoryHeader() {
+        const filterLabel = HISTORY_FILTER_META[state.historyFilter].label;
+        if (Number.isInteger(state.activeTooth)) {
+          historyTitle.textContent = state.activeTooth + "-tish tarixi";
+          historySubtitle.textContent = "Tanlangan tish bo'yicha yozuvlar. Filter: " + filterLabel + ".";
+        } else {
+          historyTitle.textContent = "Oxirgi 10 ta o'zgarish";
+          historySubtitle.textContent = "Tish tanlanmasa, mijoz bo'yicha eng so'nggi 10 ta o'zgarish ko'rinadi. Filter: " + filterLabel + ".";
+        }
+      }
+
+      function paintTimeline() {
+        const items = getFilteredHistoryItems();
+        historyTimeline.innerHTML = "";
+        historyEmpty.hidden = items.length > 0;
+        historyEmpty.textContent = state.historyFilter === "all"
+          ? "Hali tarix yozuvlari yo'q."
+          : "\"" + HISTORY_FILTER_META[state.historyFilter].label + "\" bo'yicha yozuv topilmadi.";
+
+        items.forEach((item) => {
+          const kind = getHistoryKind(item);
+          const article = document.createElement("article");
+          article.className = "timeline-item";
+          article.dataset.kind = kind;
+          const actionsHtml = item.source === "manual"
+            ? '<div class="timeline-actions"><button class="btn btn-small timeline-edit-button" type="button" data-history-id="' + item.id + '">Tahrirlash</button></div>'
+            : "";
+          article.innerHTML = `
+            <div class="timeline-rail">
+              <span class="timeline-dot"></span>
+              <span class="timeline-line"></span>
+            </div>
+            <div class="timeline-card timeline-card--${kind}">
+              <div class="timeline-topline">
+                <div class="timeline-meta">
+                  <span class="timeline-tooth">${escapeHtml(item.toothNo)}-tish</span>
+                  <span class="timeline-time">${escapeHtml(item.occurredAtLabel || item.createdAtLabel)}</span>
+                </div>
+                ${actionsHtml}
+              </div>
+              <div class="timeline-badges">
+                <span class="timeline-badge">${escapeHtml(item.eventTypeLabel || "Yozuv")}</span>
+                ${item.source === "manual" ? "<span class=\"timeline-badge is-soft\">Qo'lda</span>" : '<span class="timeline-badge is-soft">Avtomatik</span>'}
+                ${kind === "payment" ? '<span class="timeline-badge is-payment">Pul tushdi</span>' : ""}
+                ${kind === "change" ? '<span class="timeline-badge is-change">Davolangan / o\'zgargan</span>' : ""}
+                ${kind === "note" ? '<span class="timeline-badge is-note">Describe yozilgan</span>' : ""}
+              </div>
+              <div class="timeline-summary">${escapeHtml(item.summary)}</div>
+              ${item.details ? '<div class="timeline-details">' + escapeHtml(item.details) + '</div>' : ''}
+              ${item.paymentAmount ? "<div class=\"timeline-payment\">To'lov: " + escapeHtml(item.paymentAmount) + "</div>" : ''}
+              ${item.paymentDescription ? '<div class="timeline-details">' + escapeHtml(item.paymentDescription) + '</div>' : ''}
+              ${
+                Array.isArray(item.images) && item.images.length
+                  ? '<div class="timeline-images">' + item.images.map((url) => '<a class="timeline-image-link" href="' + encodeURI(url) + '" target="_blank" rel="noopener"><img class="timeline-image" src="' + encodeURI(url) + '" alt="history image"></a>').join("")
+                  + '</div>'
+                  : ''
+              }
+            </div>
+          `;
+          historyTimeline.appendChild(article);
+        });
+
+        historyTimeline.querySelectorAll(".timeline-edit-button").forEach((button) => {
+          button.addEventListener("click", function () {
+            const historyId = Number(button.getAttribute("data-history-id"));
+            startHistoryEdit(historyId);
+          });
+        });
+      }
+
+      function setHistoryItems(items) {
+        state.historyItems = Array.isArray(items) ? items : [];
+        state.rawHistoryItems = state.historyItems.slice();
+        updateHistoryHeader();
+        syncHistoryFilterButtons();
+        paintTimeline();
+      }
+
+      async function refreshHistory() {
+        updateHistoryHeader();
+        syncHistoryFilterButtons();
+        historyTimeline.innerHTML = '<div class="history-loading">Tarix yuklanmoqda...</div>';
+        historyEmpty.hidden = true;
+
+        const url = Number.isInteger(state.activeTooth)
+          ? historyUrl + "?tooth_no=" + state.activeTooth
+          : historyUrl;
+
+        try {
+          const response = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.message || "Tarixni olishda xatolik.");
+          }
+          setHistoryItems(Array.isArray(data.items) ? data.items : []);
+        } catch (error) {
+          historyTimeline.innerHTML = '<div class="history-loading is-error">' + escapeHtml(error.message || "Tarixni olishda xatolik.") + '</div>';
+        }
+      }
+
+      function getCurrentToothSnapshot() {
+        if (!Number.isInteger(state.activeTooth) || !window.odontogramApp || typeof window.odontogramApp.getStatusPayload !== "function") {
+          return {};
+        }
+        const payload = window.odontogramApp.getStatusPayload();
+        return payload && payload.teeth ? payload.teeth[String(state.activeTooth)] || {} : {};
+      }
+
+      function wireFissureButton() {
+        const row = document.getElementById("fissureSealingRow");
+        const input = document.getElementById("fissureSealing");
+        const button = document.getElementById("fissureSealingButton");
+        if (!row || !input || !button || row.dataset.wired === "1") {
+          return;
+        }
+
+        function syncFissureButtonState() {
+          const checked = !!input.checked;
+          button.setAttribute("aria-pressed", checked ? "true" : "false");
+          button.classList.toggle("is-active", checked);
+        }
+
+        row.dataset.wired = "1";
+        button.addEventListener("click", function (event) {
+          event.preventDefault();
+          input.checked = !input.checked;
+          input.dispatchEvent(new Event("change", { bubbles: true }));
+          syncFissureButtonState();
+        });
+        input.addEventListener("change", syncFissureButtonState);
+        syncFissureButtonState();
+      }
+
+      function setActiveTooth(toothNo) {
+        const nextTooth = Number.isInteger(toothNo) ? toothNo : null;
+        const changed = state.activeTooth !== nextTooth;
+        state.activeTooth = nextTooth;
+        if (!Number.isInteger(state.activeTooth) && state.editingHistoryId) {
+          resetHistoryForm(true);
+        } else if (!state.editingHistoryId) {
+          syncHistoryFormState();
+        }
+        const fissureInput = document.getElementById("fissureSealing");
+        const fissureButton = document.getElementById("fissureSealingButton");
+        if (fissureInput && fissureButton) {
+          fissureButton.setAttribute("aria-pressed", fissureInput.checked ? "true" : "false");
+          fissureButton.classList.toggle("is-active", !!fissureInput.checked);
+        }
+        if (changed) {
+          refreshHistory();
+        }
+      }
+
+      function renderExistingImages(urls) {
+        historyImagesPreview.innerHTML = "";
+        (urls || []).forEach((url) => {
+          const wrapper = document.createElement("div");
+          wrapper.className = "history-preview-item";
+          wrapper.innerHTML = '<img class="history-preview-image" src="' + encodeURI(url) + '" alt="history image">';
+          historyImagesPreview.appendChild(wrapper);
+        });
+      }
+
+      function startHistoryEdit(historyId) {
+        const item = state.historyItems.find((entry) => Number(entry.id) === Number(historyId));
+        if (!item) {
+          showStatus("Tarix yozuvi topilmadi.", false);
+          return;
+        }
+        state.editingHistoryId = item.id;
+        state.activeTooth = item.toothNo;
+        historyNoteInput.value = item.details || "";
+        historyPaymentAmountInput.value = item.paymentAmount || "";
+        historyPaymentDescriptionInput.value = item.paymentDescription || "";
+        historyImagesInput.value = "";
+        renderExistingImages(item.images || []);
+        syncHistoryFormState();
+        historyForm.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+
+      historyImagesInput.addEventListener("change", function () {
+        const files = Array.from(historyImagesInput.files || []);
+        if (files.length > 3) {
+          showStatus("Ko'pi bilan 3 ta rasm yuklash mumkin.", false);
+          historyImagesInput.value = "";
+          historyImagesPreview.innerHTML = "";
+          return;
+        }
+
+        historyImagesPreview.innerHTML = "";
+        files.forEach((file) => {
+          const wrapper = document.createElement("div");
+          wrapper.className = "history-preview-item";
+          const image = document.createElement("img");
+          image.className = "history-preview-image";
+          image.alt = file.name;
+          image.src = URL.createObjectURL(file);
+          wrapper.appendChild(image);
+          historyImagesPreview.appendChild(wrapper);
+        });
+      });
+
+      historyCancelButton.addEventListener("click", function () {
+        resetHistoryForm(true);
+      });
+
+      historyFilterBar.querySelectorAll("[data-filter]").forEach((button) => {
+        button.addEventListener("click", function () {
+          state.historyFilter = button.getAttribute("data-filter") || "all";
+          updateHistoryHeader();
+          syncHistoryFilterButtons();
+          paintTimeline();
+        });
+      });
+
+      window.addEventListener("odontogram:selection-change", function (event) {
+        setActiveTooth(event.detail && Number.isInteger(event.detail.activeTooth) ? event.detail.activeTooth : null);
+      });
+
+      if (saveButton) {
+        saveButton.addEventListener("click", async function () {
+          if (!canManagePatients) {
+            showStatus("Sizda saqlash huquqi yo'q.", false);
+            return;
+          }
+        if (!window.odontogramApp || typeof window.odontogramApp.getStatusPayload !== "function") {
+          showStatus("Odontogram hali tayyor bo'lmadi.", false);
+          return;
+        }
+
+        saveButton.disabled = true;
+        saveButton.textContent = "Saqlanmoqda...";
+
+        try {
+          const response = await fetch(saveUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": csrfToken
+            },
+            body: JSON.stringify(window.odontogramApp.getStatusPayload())
+          });
+
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.message || "Saqlashda xatolik.");
+          }
+
+          const suffix = data.historyCount ? " " + data.historyCount + " ta tarix yozuvi qo'shildi." : "";
+          showStatus((data.message || "Saqlandi.") + suffix, true);
+          await refreshHistory();
+        } catch (error) {
+          showStatus(error.message || "Saqlashda xatolik.", false);
+        } finally {
+          saveButton.disabled = false;
+          saveButton.textContent = "Saqlash";
+        }
+        });
+      }
+
+      historyForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+        if (!canManagePatients) {
+          showStatus("Tarix qo'shish faqat stomatolog uchun ochiq.", false);
+          return;
+        }
+        if (!Number.isInteger(state.activeTooth)) {
+          return;
+        }
+
+        const note = historyNoteInput.value.trim();
+        const paymentAmount = historyPaymentAmountInput.value.trim();
+        const paymentDescription = historyPaymentDescriptionInput.value.trim();
+        const files = Array.from(historyImagesInput.files || []);
+        if (!note && !paymentAmount && !paymentDescription) {
+          showStatus("Izoh yoki to'lov ma'lumoti kiriting.", false);
+          return;
+        }
+        if (files.length > 3) {
+          showStatus("Ko'pi bilan 3 ta rasm yuklash mumkin.", false);
+          return;
+        }
+
+        historySubmitButton.disabled = true;
+
+        try {
+          const wasEditing = Boolean(state.editingHistoryId);
+          const formData = new FormData();
+          formData.append("tooth_no", String(state.activeTooth));
+          formData.append("details", note);
+          formData.append("payment_amount", paymentAmount);
+          formData.append("payment_description", paymentDescription);
+          formData.append("snapshot", JSON.stringify(getCurrentToothSnapshot()));
+          files.forEach((file) => formData.append("images", file));
+
+          const targetUrl = state.editingHistoryId
+            ? historyAddUrl.replace("/add/", "/" + state.editingHistoryId + "/edit/")
+            : historyAddUrl;
+
+          const response = await fetch(targetUrl, {
+            method: "POST",
+            headers: {
+              "X-CSRFToken": csrfToken
+            },
+            body: formData
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.message || "Tarixga qo'shishda xatolik.");
+          }
+          resetHistoryForm(true);
+          showStatus(data.message || (wasEditing ? "Tarix yozuvi yangilandi." : "Tarixga qo'lda izoh qo'shildi."), true);
+          await refreshHistory();
+        } catch (error) {
+          showStatus(error.message || "Tarixga qo'shishda xatolik.", false);
+        } finally {
+          historySubmitButton.disabled = !canManagePatients || !Number.isInteger(state.activeTooth);
+        }
+      });
+
+      syncHistoryFormState();
+      updateHistoryHeader();
+      wireFissureButton();
+      refreshHistory();
+
+      window.addEventListener("load", function () {
+        if (window.odontogramApp && typeof window.odontogramApp.getActiveTooth === "function") {
+          setActiveTooth(window.odontogramApp.getActiveTooth());
+        }
+      });
+    })();
+  </script>
+{% endblock %}

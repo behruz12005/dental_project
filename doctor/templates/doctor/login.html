@@ -1,0 +1,43 @@
+{% load static %}
+<!doctype html>
+<html lang="uz">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tizimga kirish</title>
+    <link rel="stylesheet" href="{% static 'doctor/auth.css' %}">
+  </head>
+  <body>
+    <main class="auth-shell">
+      <section class="auth-hero">
+        <div class="auth-hero-badge">DentCare Pro</div>
+        <h1>Bitta login orqali klinika, xodim va jadval boshqaruvi</h1>
+        <p>Stomatolog user klinikani boshqaradi, xodim userlar bemorlarni qabul jadvaliga joylaydi va barcha ma'lumotlar bir tizimda yuradi.</p>
+      </section>
+
+      <section class="auth-card">
+        <div class="auth-card-head">
+          <h2>Tizimga kirish</h2>
+          <p>Login va parolingizni kiriting.</p>
+        </div>
+
+        {% if form.non_field_errors %}
+          <div class="auth-error">{{ form.non_field_errors|striptags }}</div>
+        {% endif %}
+
+        <form method="post" class="auth-form">
+          {% csrf_token %}
+          <div class="form-group">
+            <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+            {{ form.username }}
+          </div>
+          <div class="form-group">
+            <label for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+            {{ form.password }}
+          </div>
+          <button class="auth-submit" type="submit">Kirish</button>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>

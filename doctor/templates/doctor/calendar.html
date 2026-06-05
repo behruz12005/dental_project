@@ -1,0 +1,771 @@
+{% extends 'doctor/base.html' %}
+{% load static %}
+
+{% block title %}Qabul jadvali{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'doctor/staff-calendar.css' %}?v=calendar-month-1">
+{% endblock %}
+
+{% block content %}
+<section class="page-card calendar-page-card">
+  <div class="calendar-toolbar">
+    <div class="calendar-toolbar-copy">
+      <span class="calendar-kicker">Jadval</span>
+      <h2>Qabul jadvali</h2>
+      <p>Bemor qabullarini oy, hafta va kun kesimida boshqaring.</p>
+    </div>
+    <button id="openAppointmentModalButton" class="btn btn-primary calendar-launch-btn" type="button">
+      Qabul qo'shish
+    </button>
+  </div>
+
+  <section class="calendar-board">
+    <div id="appointmentCalendar" class="appointment-calendar"></div>
+  </section>
+</section>
+
+<div id="appointmentModal" class="modal-shell" hidden>
+  <div class="modal-backdrop" data-close-appointment-modal></div>
+  <div class="modal-card appointment-modal-card" role="dialog" aria-modal="true" aria-labelledby="appointmentModalTitle">
+    <div class="modal-head">
+      <div>
+        <h3 id="appointmentModalTitle">Qabul qo'shish</h3>
+        <p>Bemorni tanlang, vaqtni belgilang va davomiyligini kiriting.</p>
+      </div>
+      <button id="appointmentModalCloseButton" class="modal-close" type="button" aria-label="Yopish">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <form id="appointmentForm" class="appointment-modal-form" autocomplete="off">
+        {% csrf_token %}
+        <input id="appointmentIdInput" type="hidden">
+
+        <div class="calendar-native-hidden">
+          {{ form.customer }}
+        </div>
+
+        <div class="appointment-layout-row appointment-layout-row-top">
+          <div class="appointment-field appointment-col-patient">
+            <label for="appointmentCustomerPicker">Bemor</label>
+            <button id="appointmentCustomerPicker" class="customer-picker-button" type="button">Bemorni tanlang...</button>
+          </div>
+
+          {% if current_membership.is_owner %}
+            <div class="appointment-field appointment-col-assigned">
+              <label for="{{ form.assigned_to.id_for_label }}">Doktor</label>
+              {{ form.assigned_to }}
+            </div>
+          {% else %}
+            <div class="calendar-native-hidden">
+              {{ form.assigned_to }}
+            </div>
+            <div class="appointment-field appointment-col-assigned">
+              <label>Doktor</label>
+              <div class="calendar-static-chip">{{ request.user.get_full_name|default:request.user.username }}</div>
+            </div>
+          {% endif %}
+
+          <div class="appointment-field appointment-col-status">
+            <label for="{{ form.status.id_for_label }}">Holati</label>
+            {{ form.status }}
+          </div>
+
+          <div class="appointment-field appointment-col-starts">
+            <label for="{{ form.starts_at.id_for_label }}">Boshlanish vaqti</label>
+            {{ form.starts_at }}
+          </div>
+
+          <div class="appointment-field appointment-col-duration">
+            <label for="{{ form.duration_minutes.id_for_label }}">Davomiyligi</label>
+            {{ form.duration_minutes }}
+          </div>
+        </div>
+
+        <div class="appointment-layout-row appointment-layout-row-card">
+          <div class="appointment-col-odontogram-card">
+            <div class="customer-access-card">
+              <div class="customer-access-icon" aria-hidden="true">DG</div>
+              <div class="customer-access-copy">
+                <div class="customer-access-title">Odontogramga o'tish</div>
+                <div id="customerCardHint" class="calendar-field-hint">Kartani ochib, bemorning odontogram sahifasiga o'tishingiz mumkin.</div>
+              </div>
+              <a id="openCustomerOdontogramButton" class="btn btn-soft customer-odontogram-link" href="#" hidden>
+                Ochish
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="appointment-layout-row appointment-layout-row-bottom">
+          <div class="calendar-native-hidden">
+            {{ form.color }}
+          </div>
+          <div class="appointment-field appointment-col-notes">
+            <label for="{{ form.notes.id_for_label }}">Izoh</label>
+            {{ form.notes }}
+          </div>
+        </div>
+
+        <div class="appointment-actions appointment-col-actions">
+          <button class="btn btn-primary" id="appointmentSubmitButton" type="submit">Saqlash</button>
+          <button class="btn" id="appointmentResetButton" type="button">Tozalash</button>
+          <button class="btn btn-danger" id="appointmentDeleteButton" type="button" hidden>O'chirish</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="customerPickerModal" class="modal-shell" hidden>
+  <div class="modal-backdrop" data-close-customer-modal></div>
+  <div class="modal-card customer-modal-card" role="dialog" aria-modal="true" aria-labelledby="customerPickerTitle">
+    <div class="modal-head">
+      <div>
+        <h3 id="customerPickerTitle">Bemorni tanlash</h3>
+        <p>Ism yoki telefon bo'yicha qidiring va ro'yxatdan tanlang.</p>
+      </div>
+      <button id="customerPickerCloseButton" class="modal-close" type="button" aria-label="Yopish">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input id="customerPickerSearchInput" class="form-input modal-search-input" type="text" autocomplete="off" placeholder="Bemor ismi yoki telefoni...">
+      <div id="customerPickerResults" class="modal-results-list"></div>
+    </div>
+  </div>
+</div>
+
+{{ customer_search_items|json_script:"calendar-customer-search-items" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/locales-all.global.min.js"></script>
+<script>
+(function () {
+  const calendarEl = document.getElementById("appointmentCalendar");
+  const form = document.getElementById("appointmentForm");
+  if (!calendarEl || !form || typeof FullCalendar === "undefined") {
+    return;
+  }
+
+  const csrfInput = form.querySelector("[name='csrfmiddlewaretoken']");
+  const csrfToken = csrfInput ? csrfInput.value : "{{ csrf_token }}";
+
+  const appointmentModal = document.getElementById("appointmentModal");
+  const appointmentModalTitle = document.getElementById("appointmentModalTitle");
+  const openAppointmentModalButton = document.getElementById("openAppointmentModalButton");
+  const appointmentModalCloseButton = document.getElementById("appointmentModalCloseButton");
+  const appointmentIdInput = document.getElementById("appointmentIdInput");
+  const submitButton = document.getElementById("appointmentSubmitButton");
+  const resetButton = document.getElementById("appointmentResetButton");
+  const deleteButton = document.getElementById("appointmentDeleteButton");
+  const openCustomerOdontogramButton = document.getElementById("openCustomerOdontogramButton");
+  const customerCardHint = document.getElementById("customerCardHint");
+
+  const customerHiddenInput = document.getElementById("{{ form.customer.id_for_label }}");
+  const customerPickerButton = document.getElementById("appointmentCustomerPicker");
+  const customerPickerModal = document.getElementById("customerPickerModal");
+  const customerPickerCloseButton = document.getElementById("customerPickerCloseButton");
+  const customerPickerSearchInput = document.getElementById("customerPickerSearchInput");
+  const customerPickerResults = document.getElementById("customerPickerResults");
+
+  const assignedInput = document.getElementById("{{ form.assigned_to.id_for_label }}");
+  const notesInput = document.getElementById("{{ form.notes.id_for_label }}");
+  const startsInput = document.getElementById("{{ form.starts_at.id_for_label }}");
+  const statusInput = document.getElementById("{{ form.status.id_for_label }}");
+  const colorInput = document.getElementById("{{ form.color.id_for_label }}");
+  const durationInput = document.getElementById("{{ form.duration_minutes.id_for_label }}");
+
+  const customerJsonEl = document.getElementById("calendar-customer-search-items");
+  let customerItems = [];
+  try {
+    customerItems = JSON.parse(customerJsonEl ? customerJsonEl.textContent : "[]");
+  } catch (error) {
+    customerItems = [];
+  }
+
+  function safeText(value) {
+    return value === null || value === undefined ? "" : String(value);
+  }
+
+  function toLocalInputValue(date) {
+    if (!date || !(date instanceof Date)) {
+      return "";
+    }
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - offset * 60000);
+    return localDate.toISOString().slice(0, 16);
+  }
+
+  function roundToNearestHalfHour(date) {
+    const rounded = new Date(date.getTime());
+    rounded.setSeconds(0, 0);
+    const minutes = rounded.getMinutes();
+    if (minutes === 0 || minutes === 30) {
+      return rounded;
+    }
+    if (minutes < 30) {
+      rounded.setMinutes(30);
+      return rounded;
+    }
+    rounded.setHours(rounded.getHours() + 1, 0, 0, 0);
+    return rounded;
+  }
+
+  function getDefaultStartValue() {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 30);
+    return toLocalInputValue(roundToNearestHalfHour(now));
+  }
+
+  function dateStrToDefaultTime(dateStr) {
+    if (!dateStr) {
+      return getDefaultStartValue();
+    }
+    return dateStr.slice(0, 10) + "T09:00";
+  }
+
+  function resolveSelectionStart(info) {
+    if (info.allDay || !safeText(info.startStr).includes("T")) {
+      return dateStrToDefaultTime(info.startStr);
+    }
+    if (info.start && info.start instanceof Date) {
+      return toLocalInputValue(info.start);
+    }
+    return safeText(info.startStr).slice(0, 16);
+  }
+
+  function getEventProp(event, names, fallback) {
+    const props = event.extendedProps || {};
+    for (const name of names) {
+      if (props[name] !== undefined && props[name] !== null && props[name] !== "") {
+        return props[name];
+      }
+    }
+    return fallback || "";
+  }
+
+  function getCustomerById(customerId) {
+    return customerItems.find((item) => String(item.id) === String(customerId)) || null;
+  }
+
+  function setCustomer(customerId) {
+    const customer = getCustomerById(customerId);
+    if (customerHiddenInput) {
+      customerHiddenInput.value = customer ? customer.id : "";
+    }
+    if (customerPickerButton) {
+      customerPickerButton.textContent = customer ? safeText(customer.name) : "Bemorni tanlang...";
+      customerPickerButton.classList.toggle("is-selected", Boolean(customer));
+    }
+    syncCustomerOdontogramLink(customer ? customer.id : "");
+  }
+
+  function syncCustomerOdontogramLink(customerId) {
+    if (!openCustomerOdontogramButton) {
+      return;
+    }
+    if (customerId) {
+      openCustomerOdontogramButton.href = "{% url 'doctor:customer_odontogram' 0 %}".replace("/0/", "/" + customerId + "/");
+      openCustomerOdontogramButton.hidden = false;
+      if (customerCardHint) {
+        customerCardHint.textContent = "Kartani ochib, bemorning odontogram sahifasiga o'tishingiz mumkin.";
+      }
+      return;
+    }
+    openCustomerOdontogramButton.href = "#";
+    openCustomerOdontogramButton.hidden = true;
+    if (customerCardHint) {
+      customerCardHint.textContent = "Bemor tanlangandan keyin kartasiga o'tish mumkin bo'ladi.";
+    }
+  }
+
+  function getDurationFromEvent(event) {
+    const explicitDuration = parseInt(getEventProp(event, ["durationMinutes"], ""), 10);
+    if (!Number.isNaN(explicitDuration) && explicitDuration > 0) {
+      return explicitDuration;
+    }
+    if (event.start && event.end) {
+      const minutes = Math.round((event.end.getTime() - event.start.getTime()) / 60000);
+      if (minutes > 0) {
+        return minutes;
+      }
+    }
+    return 30;
+  }
+
+  function getStatusClass(event) {
+    const status = getEventProp(event, ["status"], "planned");
+    if (status === "done") {
+      return "calendar-status-done";
+    }
+    if (status === "cancelled") {
+      return "calendar-status-cancelled";
+    }
+    return "calendar-status-planned";
+  }
+
+  function openAppointmentModal() {
+    if (!appointmentModal) {
+      return;
+    }
+    appointmentModal.hidden = false;
+    document.body.classList.add("modal-open");
+  }
+
+  function closeAppointmentModal() {
+    if (!appointmentModal) {
+      return;
+    }
+    appointmentModal.hidden = true;
+    if (customerPickerModal) {
+      customerPickerModal.hidden = true;
+    }
+    document.body.classList.remove("modal-open");
+  }
+
+  function openCustomerModal() {
+    if (!customerPickerModal) {
+      return;
+    }
+    customerPickerModal.hidden = false;
+    document.body.classList.add("modal-open");
+    renderCustomerResults("");
+    if (customerPickerSearchInput) {
+      customerPickerSearchInput.value = "";
+      window.setTimeout(function () {
+        customerPickerSearchInput.focus();
+      }, 20);
+    }
+  }
+
+  function closeCustomerModal() {
+    if (!customerPickerModal) {
+      return;
+    }
+    customerPickerModal.hidden = true;
+    if (!appointmentModal || appointmentModal.hidden) {
+      document.body.classList.remove("modal-open");
+    }
+  }
+
+  function resetForm(defaultStartValue) {
+    appointmentIdInput.value = "";
+    form.reset();
+    setCustomer("");
+    if (appointmentModalTitle) {
+      appointmentModalTitle.textContent = "Qabul qo'shish";
+    }
+    if (colorInput) {
+      colorInput.value = "#0e7490";
+    }
+    if (durationInput) {
+      durationInput.value = "30";
+    }
+    if (startsInput) {
+      startsInput.value = defaultStartValue || getDefaultStartValue();
+    }
+    deleteButton.hidden = true;
+    submitButton.disabled = false;
+    submitButton.textContent = "Saqlash";
+  }
+
+  function openCreateModal(startValue) {
+    resetForm(startValue);
+    openAppointmentModal();
+    if (customerPickerButton) {
+      window.setTimeout(function () {
+        customerPickerButton.focus();
+      }, 20);
+    }
+  }
+
+  function fillFormFromEvent(event) {
+    appointmentIdInput.value = event.id;
+    if (appointmentModalTitle) {
+      appointmentModalTitle.textContent = "Qabulni tahrirlash";
+    }
+    setCustomer(getEventProp(event, ["customerId", "customer_id", "customer"]));
+
+    if (assignedInput) {
+      assignedInput.value = getEventProp(event, ["assignedToId", "assigned_to_id", "assigned_to"]);
+    }
+    if (statusInput) {
+      statusInput.value = getEventProp(event, ["status"], "planned");
+    }
+    if (notesInput) {
+      notesInput.value = getEventProp(event, ["notes"], "");
+    }
+    if (colorInput) {
+      colorInput.value = getEventProp(event, ["color"], event.backgroundColor || "#0e7490");
+    }
+    if (startsInput) {
+      startsInput.value = toLocalInputValue(event.start);
+    }
+    if (durationInput) {
+      durationInput.value = String(getDurationFromEvent(event));
+    }
+
+    deleteButton.hidden = false;
+    submitButton.disabled = false;
+    submitButton.textContent = "Yangilash";
+    openAppointmentModal();
+  }
+
+  function renderCustomerResults(query) {
+    if (!customerPickerResults) {
+      return;
+    }
+
+    const normalized = safeText(query).trim().toLowerCase();
+    customerPickerResults.innerHTML = "";
+
+    const matches = customerItems
+      .filter(function (item) {
+        if (!normalized) {
+          return true;
+        }
+        const name = safeText(item.name).toLowerCase();
+        const phone = safeText(item.phone).toLowerCase();
+        return name.includes(normalized) || phone.includes(normalized);
+      })
+      .slice(0, 18);
+
+    if (!matches.length) {
+      const empty = document.createElement("div");
+      empty.className = "modal-results-empty";
+      empty.textContent = "Bemor topilmadi";
+      customerPickerResults.appendChild(empty);
+      return;
+    }
+
+    matches.forEach(function (item) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "modal-customer-option";
+
+      const name = document.createElement("strong");
+      name.textContent = safeText(item.name) || "Nomsiz bemor";
+      button.appendChild(name);
+
+      if (safeText(item.phone)) {
+        const phone = document.createElement("span");
+        phone.textContent = safeText(item.phone);
+        button.appendChild(phone);
+      }
+
+      button.addEventListener("click", function () {
+        setCustomer(item.id);
+        closeCustomerModal();
+      });
+
+      customerPickerResults.appendChild(button);
+    });
+  }
+
+  async function parseResponse(response) {
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      return await response.json();
+    }
+    return { detail: await response.text() };
+  }
+
+  async function requestJson(url, options) {
+    const response = await fetch(url, options);
+    const data = await parseResponse(response);
+    if (!response.ok) {
+      const errors = data.errors ? Object.values(data.errors).flat().join(" ") : data.detail || "So'rovda xatolik yuz berdi.";
+      throw new Error(errors);
+    }
+    return data;
+  }
+
+  async function saveEventPosition(event) {
+    const customerId = getEventProp(event, ["customerId", "customer_id", "customer"]);
+    const assignedToId = getEventProp(event, ["assignedToId", "assigned_to_id", "assigned_to"]);
+    const status = getEventProp(event, ["status"], "planned");
+    const notes = getEventProp(event, ["notes"], "");
+    const color = getEventProp(event, ["color"], event.backgroundColor || "#0e7490");
+    const durationMinutes = String(getDurationFromEvent(event));
+
+    if (!customerId) {
+      throw new Error("Bu qabul uchun bemor topilmadi.");
+    }
+
+    const formData = new FormData();
+    formData.append("customer", customerId);
+    formData.append("assigned_to", assignedToId);
+    formData.append("status", status);
+    formData.append("notes", notes);
+    formData.append("color", color);
+    formData.append("starts_at", toLocalInputValue(event.start));
+    formData.append("duration_minutes", durationMinutes);
+
+    const url = "{% url 'doctor:appointment_update' 0 %}".replace("/0/", "/" + event.id + "/");
+    return requestJson(url, {
+      method: "POST",
+      headers: { "X-CSRFToken": csrfToken },
+      body: formData
+    });
+  }
+
+  function makeEventContent(arg) {
+    const wrapper = document.createElement("div");
+    const isMonthView = arg.view.type === "dayGridMonth";
+    wrapper.className = isMonthView ? "fc-event-modern fc-event-modern-month" : "fc-event-modern";
+
+    if (isMonthView) {
+      const row = document.createElement("div");
+      row.className = "fc-event-modern-month-row";
+
+      if (arg.timeText) {
+        const time = document.createElement("span");
+        time.className = "fc-event-modern-month-time";
+        time.textContent = arg.timeText;
+        row.appendChild(time);
+      }
+
+      const title = document.createElement("div");
+      title.className = "fc-event-modern-title";
+      title.textContent = arg.event.title || "Qabul";
+      row.appendChild(title);
+      wrapper.appendChild(row);
+      return { domNodes: [wrapper] };
+    }
+
+    const time = document.createElement("div");
+    time.className = "fc-event-modern-time";
+    time.textContent = arg.timeText || "";
+
+    const title = document.createElement("div");
+    title.className = "fc-event-modern-title";
+    title.textContent = arg.event.title || "Qabul";
+
+    const meta = document.createElement("div");
+    meta.className = "fc-event-modern-meta";
+    meta.textContent = getEventProp(arg.event, ["statusLabel"], "");
+
+    wrapper.appendChild(time);
+    wrapper.appendChild(title);
+    if (meta.textContent) {
+      wrapper.appendChild(meta);
+    }
+    return { domNodes: [wrapper] };
+  }
+
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    locale: "uz",
+    initialView: "dayGridMonth",
+    headerToolbar: {
+      left: "prev,next today",
+      center: "title",
+      right: "dayGridMonth,listWeek"
+    },
+    buttonText: {
+      today: "Bugun",
+      month: "Oy",
+      list: "List"
+    },
+    firstDay: 1,
+    views: {
+      dayGridMonth: {
+        dayMaxEventRows: 6,
+        eventMaxStack: 6,
+        titleFormat: { year: "numeric", month: "long" }
+      },
+      listWeek: {
+        buttonText: "List",
+        titleFormat: { year: "numeric", month: "short", day: "numeric" }
+      }
+    },
+    selectable: true,
+    editable: true,
+    eventDurationEditable: false,
+    nowIndicator: true,
+    allDaySlot: false,
+    slotMinTime: "00:00:00",
+    slotMaxTime: "24:00:00",
+    scrollTime: "08:00:00",
+    expandRows: true,
+    height: "78vh",
+    contentHeight: "auto",
+    stickyHeaderDates: true,
+    eventMinHeight: 52,
+    eventShortHeight: 44,
+    slotEventOverlap: false,
+    moreLinkClick: "popover",
+    navLinks: true,
+    timeZone: "local",
+    eventOrder: "start,title",
+    displayEventTime: true,
+    displayEventEnd: true,
+    eventTimeFormat: { hour: "2-digit", minute: "2-digit", hour12: false },
+    slotLabelFormat: { hour: "2-digit", minute: "2-digit", hour12: false },
+    listDayFormat: { weekday: "long", day: "numeric", month: "long" },
+    listDaySideFormat: { hour: "2-digit", minute: "2-digit", hour12: false },
+    events: "{% url 'doctor:appointment_events' %}",
+    dateClick: function (info) {
+      openCreateModal(info.allDay ? dateStrToDefaultTime(info.dateStr) : toLocalInputValue(info.date));
+    },
+    select: function (info) {
+      openCreateModal(resolveSelectionStart(info));
+    },
+    eventClick: function (info) {
+      fillFormFromEvent(info.event);
+    },
+    eventDrop: async function (info) {
+      try {
+        await saveEventPosition(info.event);
+        calendar.refetchEvents();
+      } catch (error) {
+        info.revert();
+        alert(error.message || "Qabul vaqtini o'zgartirishda xatolik yuz berdi.");
+      }
+    },
+    eventClassNames: function (arg) {
+      return [getStatusClass(arg.event)];
+    },
+    eventContent: makeEventContent
+  });
+
+  calendar.render();
+  resetForm();
+
+  if (openAppointmentModalButton) {
+    openAppointmentModalButton.addEventListener("click", function () {
+      openCreateModal();
+    });
+  }
+
+  if (appointmentModal) {
+    appointmentModal.addEventListener("click", function (event) {
+      if (event.target.hasAttribute("data-close-appointment-modal")) {
+        closeAppointmentModal();
+      }
+    });
+  }
+
+  if (appointmentModalCloseButton) {
+    appointmentModalCloseButton.addEventListener("click", closeAppointmentModal);
+  }
+
+  if (customerPickerButton) {
+    customerPickerButton.addEventListener("click", openCustomerModal);
+  }
+
+  if (customerPickerCloseButton) {
+    customerPickerCloseButton.addEventListener("click", closeCustomerModal);
+  }
+
+  if (customerPickerSearchInput) {
+    customerPickerSearchInput.addEventListener("input", function () {
+      renderCustomerResults(customerPickerSearchInput.value);
+    });
+  }
+
+  if (customerPickerModal) {
+    customerPickerModal.addEventListener("click", function (event) {
+      if (event.target.hasAttribute("data-close-customer-modal")) {
+        closeCustomerModal();
+      }
+    });
+  }
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key !== "Escape") {
+      return;
+    }
+    if (customerPickerModal && !customerPickerModal.hidden) {
+      closeCustomerModal();
+      return;
+    }
+    if (appointmentModal && !appointmentModal.hidden) {
+      closeAppointmentModal();
+    }
+  });
+
+  form.addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    if (!customerHiddenInput || !customerHiddenInput.value) {
+      alert("Bemorni tanlang.");
+      if (customerPickerButton) {
+        customerPickerButton.focus();
+      }
+      return;
+    }
+
+    if (!startsInput || !startsInput.value) {
+      alert("Boshlanish vaqtini tanlang.");
+      if (startsInput) {
+        startsInput.focus();
+      }
+      return;
+    }
+
+    submitButton.disabled = true;
+    submitButton.textContent = appointmentIdInput.value ? "Yangilanmoqda..." : "Saqlanmoqda...";
+
+    try {
+      const appointmentId = appointmentIdInput.value;
+      const formData = new FormData(form);
+      const url = appointmentId
+        ? "{% url 'doctor:appointment_update' 0 %}".replace("/0/", "/" + appointmentId + "/")
+        : "{% url 'doctor:appointment_create' %}";
+
+      await requestJson(url, {
+        method: "POST",
+        headers: { "X-CSRFToken": csrfToken },
+        body: formData
+      });
+
+      closeAppointmentModal();
+      resetForm();
+      calendar.refetchEvents();
+    } catch (error) {
+      alert(error.message || "Qabulni saqlashda xatolik yuz berdi.");
+      submitButton.disabled = false;
+      submitButton.textContent = appointmentIdInput.value ? "Yangilash" : "Saqlash";
+      return;
+    }
+
+    submitButton.disabled = false;
+    submitButton.textContent = "Saqlash";
+  });
+
+  resetButton.addEventListener("click", function () {
+    if (appointmentIdInput.value) {
+      deleteButton.hidden = true;
+    }
+    resetForm(startsInput ? startsInput.value : "");
+  });
+
+  deleteButton.addEventListener("click", async function () {
+    const appointmentId = appointmentIdInput.value;
+    if (!appointmentId) {
+      return;
+    }
+    if (!confirm("Ushbu qabulni o'chirasizmi?")) {
+      return;
+    }
+
+    deleteButton.disabled = true;
+    try {
+      const url = "{% url 'doctor:appointment_delete' 0 %}".replace("/0/", "/" + appointmentId + "/");
+      await requestJson(url, {
+        method: "POST",
+        headers: { "X-CSRFToken": csrfToken }
+      });
+      closeAppointmentModal();
+      resetForm();
+      calendar.refetchEvents();
+    } catch (error) {
+      alert(error.message || "Qabulni o'chirishda xatolik yuz berdi.");
+    } finally {
+      deleteButton.disabled = false;
+    }
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends 'doctor/base.html' %}
+{% load static %}
+
+{% block title %}Klinikani sozlash{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'doctor/staff-calendar.css' %}">
+{% endblock %}
+
+{% block content %}
+  <section class="page-card staff-page-card">
+    <div class="staff-page-hero">
+      <div>
+        <div class="eyebrow">Boshlang'ich sozlash</div>
+        <h1>Klinikani yarating</h1>
+        <p>Bu user stomatolog sifatida birinchi klinikasini yaratadi. Keyin shu klinika ichiga xodimlar va bemorlar biriktiriladi.</p>
+      </div>
+    </div>
+
+    <form method="post" class="staff-form-card clinic-setup-form">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="form-group">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <div class="form-error">{{ field.errors|striptags }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit">Klinikani yaratish</button>
+      </div>
+    </form>
+  </section>
+{% endblock %}

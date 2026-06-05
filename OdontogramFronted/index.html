@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Odontogram Frontend</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="odontogram-root">
+      <header class="topbar">
+        <div class="brand">
+          <div class="dot"></div>
+          <div>
+            <div class="title" data-i18n="app.title">React Odontogram Editor Modul</div>
+            <div class="subtitle" data-i18n="app.subtitle">Select a tooth on the odontogram, then set the layers.</div>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <div class="topbar-group dropdown" id="languageDropdown">
+            <button id="languageButton" class="btn btn-ghost btn-sm" aria-haspopup="menu" aria-expanded="false"></button>
+            <div id="languageMenu" class="dropdown-menu hidden" role="menu"></div>
+          </div>
+
+          <button id="themeToggle" class="btn-theme" type="button" aria-label="Toggle theme"></button>
+
+          <div class="topbar-group dropdown" id="numberingDropdown">
+            <button id="numberingButton" class="btn btn-ghost btn-sm" aria-haspopup="menu" aria-expanded="false"></button>
+            <div id="numberingMenu" class="dropdown-menu hidden" role="menu"></div>
+          </div>
+
+          <button id="btnStatusExport" class="btn btn-ghost btn-sm" data-i18n="topbar.exportStatus">Export status</button>
+          <button id="btnStatusImport" class="btn btn-ghost btn-sm" data-i18n="topbar.importStatus">Import status</button>
+          <input id="statusImportInput" type="file" accept="application/json" hidden />
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="chart">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title" data-i18n="chart.title">Dental chart</div>
+              <div class="chart-hint" data-i18n="chart.hint">Click a tooth. For multi-select, use CMD/CTRL + click.</div>
+            </div>
+
+            <div class="chart-actions">
+              <button id="btnOcclView" class="btn btn-toggle btn-icon" type="button" aria-pressed="true" data-xline="1"></button>
+              <button id="btnWisdomVisible" class="btn btn-toggle btn-icon" type="button" aria-pressed="true" data-xline="1"></button>
+              <button id="btnBoneVisible" class="btn btn-toggle btn-icon" type="button" aria-pressed="true" data-xline="1"></button>
+              <button id="btnPulpVisible" class="btn btn-toggle btn-icon" type="button" aria-pressed="true" data-xline="1"></button>
+              <button id="btnSelectNoneChart" class="btn btn-ghost btn-icon" type="button">
+                <img id="iconNoSelection" class="icon-img" src="" alt="" aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+
+          <div id="toothGrid" class="tooth-grid" aria-label="Tooth grid"></div>
+        </section>
+
+        <aside class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title-row">
+                <span class="panel-title" data-i18n="panel.controls">Controls</span>
+                <div class="panel-title-actions">
+                  <button id="btnSelectNone" class="btn btn-ghost btn-icon btn-danger" type="button" data-i18n="panel.clearSelection">Clear selection</button>
+                  <button id="btnToggleControlsCard" class="icon-btn" type="button">
+                    <span class="toggle-icon" aria-hidden="true">-</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="panel-subtitle">
+                <span data-i18n="panel.activeTooth">Active tooth</span>:
+                <span id="activeToothLabel" class="pill">-</span>
+              </div>
+
+            <div id="controlsActions" class="panel-subtitle select-actions frontend-pruned">
+                <div class="select-actions-row">
+                  <button id="btnSelectAll" class="btn btn-ghost btn-icon" type="button" data-i18n="panel.selectActions.all">All</button>
+                  <button id="btnSelectAllPresent" class="btn btn-ghost btn-icon fade-toggle" type="button" data-i18n="panel.selectActions.present">Teeth</button>
+                  <button id="btnSelectPermanent" class="btn btn-ghost btn-icon fade-toggle" type="button" data-i18n="panel.selectActions.permanent">Permanent</button>
+                  <button id="btnSelectMilk" class="btn btn-ghost btn-icon fade-toggle" type="button" data-i18n="panel.selectActions.milk">Primary</button>
+                  <button id="btnSelectImplants" class="btn btn-ghost btn-icon fade-toggle" type="button" data-i18n="panel.selectActions.implants">Implants</button>
+                  <button id="btnSelectAllMissing" class="btn btn-ghost btn-icon fade-toggle" type="button" data-i18n="panel.selectActions.missing">Missing</button>
+                </div>
+
+                <div class="select-actions-row">
+                  <button id="btnSelectUpper" class="btn btn-ghost btn-icon" type="button" data-i18n="panel.selectActions.upper">Upper</button>
+                  <button id="btnSelectUpperFront" class="btn btn-ghost btn-icon" type="button" data-i18n="panel.selectActions.upperFront">Upper 6 front</button>
+                  <button id="btnSelectUpperMolar" class="btn btn-ghost btn-icon" type="button" data-i18n="panel.selectActions.upperMolar">Upper molars</button>
+                  <button id="btnSelectLower" class="btn btn-ghost btn-icon" type="button" data-i18n="panel.selectActions.lower">Lower</button>
+                  <button id="btnSelectLowerFront" class="btn btn-ghost btn-icon" type="button" data-i18n="panel.selectActions.lowerFront">Lower 6 front</button>
+                  <button id="btnSelectLowerMolar" class="btn btn-ghost btn-icon" type="button" data-i18n="panel.selectActions.lowerMolar">Lower molars</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="warnings" class="warnings"></div>
+          </div>
+
+          <div class="panel-body">
+            <section class="card frontend-pruned" id="statusCard">
+              <div class="card-title card-title-row">
+                <span data-i18n="status.title">Statuses</span>
+                <button id="btnToggleStatusCard" class="icon-btn" type="button">
+                  <span class="toggle-icon" aria-hidden="true">-</span>
+                </button>
+              </div>
+
+              <div class="row status-actions" id="statusCardBody">
+                <button id="btnResetAll" class="btn btn-ghost btn-sm" type="button" data-i18n="status.resetAll">Reset mouth</button>
+                <button id="btnPrimaryDentition" class="btn btn-ghost btn-sm" type="button" data-i18n="status.primaryDentition">Primary dentition</button>
+                <button id="btnMixedDentition" class="btn btn-ghost btn-sm" type="button" data-i18n="status.mixedDentition">Mixed dentition</button>
+                <button id="btnEdentulous" class="btn btn-toggle btn-sm" type="button" aria-pressed="false" data-i18n="status.edentulous">Edentulous</button>
+              </div>
+
+              <div class="row status-extra-row">
+                <span data-i18n="status.extraLabel">Add:</span>
+                <select id="statusExtraSelect"></select>
+                <button id="statusExtraApply" class="btn btn-ghost btn-sm" type="button" data-i18n="status.extraApply">OK</button>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="card-title card-title-row">
+                <span data-i18n="tooth.title">Tooth details</span>
+                <button id="btnResetTooth" class="btn btn-ghost btn-sm" type="button" data-i18n="tooth.reset">Reset</button>
+              </div>
+
+              <div class="row">
+                <span data-i18n="tooth.baseLabel">Base</span>
+                <select id="toothSelect"></select>
+              </div>
+
+              <div id="bridgeUnitRow" class="row frontend-pruned">
+                <span data-i18n="tooth.bridgeLabel">Prosthesis</span>
+                <select id="bridgeUnitSelect"></select>
+              </div>
+
+              <label id="extractionRow" class="row frontend-pruned">
+                <input type="checkbox" id="extractionWound" />
+                <span data-i18n="tooth.extractionWound">fresh extraction wound</span>
+              </label>
+
+              <label id="missingClosedRow" class="row frontend-pruned">
+                <input type="checkbox" id="missingClosed" />
+                <span data-i18n="tooth.missingClosed">gap closed after extraction</span>
+              </label>
+
+              <div id="crownRow" class="row frontend-pruned">
+                <span data-i18n="tooth.crownLabel">Crown</span>
+                <select id="crownSelect"></select>
+              </div>
+
+              <div id="brokenCrownRow" class="row inline-checks contact-row frontend-pruned">
+                <label>
+                  <input type="checkbox" id="brokenMesial" />
+                  <span data-i18n="tooth.broken.mesial">mesial</span>
+                </label>
+                <label>
+                  <input type="checkbox" id="brokenIncisal" />
+                  <span data-i18n="tooth.broken.incisal">incisal</span>
+                </label>
+                <label>
+                  <input type="checkbox" id="brokenDistal" />
+                  <span data-i18n="tooth.broken.distal">distal</span>
+                </label>
+              </div>
+
+              <div id="contactPointRow" class="row inline-checks contact-row frontend-pruned">
+                <label>
+                  <input type="checkbox" id="contactMesial" />
+                  <span data-i18n="tooth.contact.mesialMissing">mesial contact missing</span>
+                </label>
+                <label>
+                  <input type="checkbox" id="contactDistal" />
+                  <span data-i18n="tooth.contact.distalMissing">distal contact missing</span>
+                </label>
+              </div>
+
+              <div id="bruxismRow" class="row inline-checks bruxism-row frontend-pruned">
+                <label>
+                  <input type="checkbox" id="bruxismWear" />
+                  <span data-i18n="tooth.bruxism.edgeWear">Incisal wear</span>
+                </label>
+                <label>
+                  <input type="checkbox" id="bruxismNeckWear" />
+                  <span data-i18n="tooth.bruxism.neckWear">Cervical wear</span>
+                </label>
+              </div>
+
+              <div id="crownActionsRow" class="row inline-checks bridge-actions-row frontend-pruned">
+                <label id="bridgePillarRow" class="inline-check">
+                  <input type="checkbox" id="bridgePillar" />
+                  <span data-i18n="tooth.bridgePillar">Bridge abutment</span>
+                </label>
+                <label id="extractionPlanRow" class="inline-check">
+                  <input type="checkbox" id="extractionPlan" />
+                  <span data-i18n="tooth.extractionPlan">Planned extraction</span>
+                </label>
+              </div>
+
+              <label id="crownReplaceRow" class="row frontend-pruned">
+                <input type="checkbox" id="crownReplace" />
+                <span data-i18n="tooth.crownReplace">Crown replacement needed</span>
+              </label>
+
+              <label id="crownNeededRow" class="row frontend-pruned">
+                <input type="checkbox" id="crownNeeded" />
+                <span data-i18n="tooth.crownNeeded">Crown needed</span>
+              </label>
+            </section>
+
+            <section id="cariesSection" class="card">
+              <div class="card-title card-title-row">
+                <span data-i18n="caries.title">Caries</span>
+                <button id="btnToggleCariesCard" class="icon-btn" type="button">
+                  <span class="toggle-icon" aria-hidden="true">-</span>
+                </button>
+              </div>
+              <div class="hint" data-i18n="caries.hint">Mark the caries surfaces</div>
+              <div id="cariesChecks" class="check-grid"></div>
+            </section>
+
+            <section id="fillingSection" class="card">
+              <div class="card-title card-title-row">
+                <span data-i18n="filling.title">Fillings and restoration</span>
+                <button id="btnToggleFillingCard" class="icon-btn" type="button">
+                  <span class="toggle-icon" aria-hidden="true">-</span>
+                </button>
+              </div>
+
+              <div class="row">
+                <span data-i18n="filling.typeLabel">Type</span>
+                <select id="fillingSelect"></select>
+              </div>
+
+              <div id="fillingSurfaceChecks" class="check-grid hidden frontend-pruned"></div>
+
+              <label id="fissureSealingRow" class="row fissure-row">
+                <input type="checkbox" id="fissureSealing" />
+                <span data-i18n="filling.fissureSealing">Fissure sealing</span>
+              </label>
+            </section>
+
+            <section id="endoSection" class="card">
+              <div class="card-title card-title-row">
+                <span data-i18n="endo.title">Endodontics</span>
+                <button id="btnToggleEndoCard" class="icon-btn" type="button">
+                  <span class="toggle-icon" aria-hidden="true">-</span>
+                </button>
+              </div>
+              <div class="hint" data-i18n="endo.hint">Set the root status</div>
+              <div class="row">
+                <select id="endoSelect"></select>
+              </div>
+
+              <div class="row inline-checks">
+                <label>
+                  <input type="checkbox" id="pulpInflam" />
+                  <span data-i18n="endo.pulpitis">Pulpitis</span>
+                </label>
+                <label>
+                  <input type="checkbox" id="endoResection" />
+                  <span data-i18n="endo.resection">Resection</span>
+                </label>
+                <label>
+                  <input type="checkbox" id="parapulpalPin" />
+                  <span data-i18n="endo.parapulpalPin">Parapulpal pin</span>
+                </label>
+              </div>
+            </section>
+
+            <section id="inflammationSection" class="card">
+              <div class="card-title card-title-row">
+                <span data-i18n="inflammation.title">Inflammation and periodontium</span>
+                <button id="btnToggleInflammationCard" class="icon-btn" type="button">
+                  <span class="toggle-icon" aria-hidden="true">-</span>
+                </button>
+              </div>
+
+              <div id="mobilityRow" class="row">
+                <span data-i18n="inflammation.mobilityLabel">Mobility</span>
+                <select id="mobilitySelect"></select>
+              </div>
+
+              <div id="modsChecks" class="check-grid"></div>
+            </section>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+{% extends 'doctor/base.html' %}
+
+{% block title %}Mijozni o'chirish{% endblock %}
+
+{% block content %}
+  <section class="page-card confirm-card">
+    <h1>Mijozni o'chirish</h1>
+    <p><strong>{{ customer.full_name }}</strong> uchun barcha tish holatlari ham o'chadi.</p>
+    <form method="post" class="form-actions">
+      {% csrf_token %}
+      <button class="btn btn-danger" type="submit">Ha, o'chirish</button>
+      <a class="btn" href="{% url 'doctor:customer_list' %}">Bekor qilish</a>
+    </form>
+  </section>
+{% endblock %}

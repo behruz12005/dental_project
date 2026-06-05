@@ -1,0 +1,144 @@
+{% extends 'doctor/base.html' %}
+{% load static %}
+
+{% block title %}Mijozlar{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'doctor/customer-list.css' %}">
+{% endblock %}
+
+{% block content %}
+  <section class="page-card customer-list-card">
+    <div class="page-header">
+      <div>
+        <h1>Mijozlar</h1>
+        <p>Barcha mijozlar, ularning kelish manbasi va asosiy holati.</p>
+      </div>
+      {% if can_add_customers %}
+        <a class="btn btn-primary" href="{% url 'doctor:customer_create' %}">Yangi mijoz</a>
+      {% endif %}
+    </div>
+
+
+
+    <form method="get" class="customer-filter-bar">
+      <label class="customer-search-field">
+        <span>Qidiruv</span>
+        <input class="form-input" type="text" name="q" value="{{ search_query }}" placeholder="Ism, telefon, manzil yoki shikoyat bo'yicha qidiring">
+      </label>
+      <label class="customer-filter-field">
+        <span>Tavsiya manbasi</span>
+        <select class="form-input" name="referred_by">
+          <option value="">Barchasi</option>
+          {% for value, label in referred_by_choices %}
+            <option value="{{ value }}"{% if selected_referred_by == value %} selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <div class="customer-filter-actions">
+        <button class="btn btn-primary" type="submit">Qidirish</button>
+        <a class="btn" href="{% url 'doctor:customer_list' %}">Tozalash</a>
+      </div>
+    </form>
+
+    <div class="customer-list-summary">
+      <div class="customer-summary-pill">
+        <strong>{{ customers|length }}</strong>
+        <span>Natija</span>
+      </div>
+      <div class="customer-summary-tip">Rasm, tavsiya manbasi va klinik eslatmalar jadvalda ko'rsatiladi.</div>
+    </div>
+
+    <div class="table-wrap customer-table-wrap">
+      <table class="data-table customer-data-table">
+        <thead>
+          <tr>
+            <th>Bemor</th>
+            <th>Aloqa</th>
+            <th>Tibbiy holat</th>
+            <th>Kelgan / Manba</th>
+            <th>Holat</th>
+            <th>Amallar</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for customer in customers %}
+            <tr>
+              <td>
+                <div class="customer-primary-cell">
+                  <div class="customer-avatar">
+                    {% if customer.profile_image %}
+                      <img src="{{ customer.profile_image.url }}" alt="{{ customer.full_name }}">
+                    {% else %}
+                      <span>{{ customer.full_name|slice:":1"|upper }}</span>
+                    {% endif %}
+                  </div>
+                  <div>
+                    <strong>{{ customer.full_name }}</strong>
+                    <div class="customer-subline">
+                      {% if customer.birth_date %}
+                        <span>{{ customer.birth_date|date:'d.m.Y' }}</span>
+                        <span>{{ customer.age }} yosh</span>
+                      {% else %}
+                        <span>Tug'ilgan sana kiritilmagan</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="customer-stack">
+                  <span>{{ customer.phone|default:"Telefon yo'q" }}</span>
+                  <small>{{ customer.address|default:"Manzil kiritilmagan"|truncatechars:52 }}</small>
+                </div>
+              </td>
+              <td>
+                <div class="customer-stack">
+                  <span>{{ customer.complaint|default:"Shikoyat kiritilmagan"|truncatechars:64 }}</span>
+                  <div class="customer-tags">
+                    {% if customer.has_allergy %}
+                      <span class="customer-tag is-warn">Allergiya bor</span>
+                    {% else %}
+                      <span class="customer-tag">Allergiya yo'q</span>
+                    {% endif %}
+                    {% if customer.has_chronic_disease %}
+                      <span class="customer-tag is-danger">Surunkali kasallik bor</span>
+                    {% else %}
+                      <span class="customer-tag">Surunkali kasallik yo'q</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="customer-stack">
+                  <span>{{ customer.arrived_at|date:'d.m.Y H:i' }}</span>
+                  <small>{{ customer.get_referred_by_display }}</small>
+                </div>
+              </td>
+              <td>
+                <div class="customer-stack">
+                  <span>{{ customer.tooth_states.count }} ta tish holati</span>
+                  <small>Yangilangan: {{ customer.updated_at|date:'d.m.Y H:i' }}</small>
+                </div>
+              </td>
+              <td>
+                <div class="action-row customer-action-row">
+                  <a class="btn btn-small" href="{% url 'doctor:customer_odontogram' customer.pk %}">Odontogram</a>
+                  {% if can_manage_patients %}
+                    <a class="btn btn-small" href="{% url 'doctor:customer_update' customer.pk %}">Edit</a>
+                    <a class="btn btn-small btn-warn" href="{% url 'doctor:customer_reset' customer.pk %}">Reset</a>
+                    <a class="btn btn-small btn-danger" href="{% url 'doctor:customer_delete' customer.pk %}">Delete</a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="empty-row">Mos mijoz topilmadi.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

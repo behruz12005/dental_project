@@ -1,0 +1,65 @@
+{% extends 'doctor/base.html' %}
+{% load static %}
+
+{% block title %}Xodimlar{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'doctor/staff-calendar.css' %}">
+{% endblock %}
+
+{% block content %}
+  <section class="page-card staff-page-card">
+    <div class="staff-page-hero">
+      <div>
+        <div class="eyebrow">Klinika jamoasi</div>
+        <h1>Xodim userlar</h1>
+        <p>Stomatolog o'z klinikasi uchun jadval boshqaradigan xodim userlarni shu yerda yaratadi.</p>
+      </div>
+    </div>
+
+    <div class="staff-layout">
+      <section class="staff-form-card">
+        <div class="staff-section-head">
+          <h3>Yangi xodim yaratish</h3>
+          <p>Xodim shu login orqali tizimga kirib qabul jadvali bilan ishlaydi.</p>
+        </div>
+        <form method="post" class="staff-form-grid">
+          {% csrf_token %}
+          {% for field in form %}
+            <div class="form-group{% if field.name == 'password1' or field.name == 'password2' %} form-group-full{% endif %}">
+              <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.errors %}
+                <div class="form-error">{{ field.errors|striptags }}</div>
+              {% endif %}
+            </div>
+          {% endfor %}
+          <div class="form-actions form-group-full">
+            <button class="btn btn-primary" type="submit">Xodim yaratish</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="staff-list-card">
+        <div class="staff-section-head">
+          <h3>Mavjud userlar</h3>
+          <p>Klinikaga biriktirilgan barcha userlar ro'yxati.</p>
+        </div>
+        <div class="staff-member-list">
+          {% for membership in memberships %}
+            <article class="staff-member-item">
+              <div class="staff-member-avatar">{{ membership.user.first_name|default:membership.user.username|slice:":1"|upper }}</div>
+              <div class="staff-member-copy">
+                <strong>{{ membership.user.get_full_name|default:membership.user.username }}</strong>
+                <span>{{ membership.user.username }}</span>
+              </div>
+              <span class="staff-role-badge{% if membership.is_owner %} is-owner{% endif %}">{{ membership.get_role_display }}</span>
+            </article>
+          {% empty %}
+            <div class="overview-empty-card">Hali xodimlar yo'q.</div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+  </section>
+{% endblock %}

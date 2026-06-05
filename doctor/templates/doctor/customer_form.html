@@ -1,0 +1,317 @@
+{% extends 'doctor/base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'doctor/customer-form.css' %}">
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  >
+{% endblock %}
+
+{% block content %}
+  <section class="page-card form-card patient-form-card">
+    <div class="page-header">
+      <div>
+        <h1>{{ page_title }}</h1>
+        <p>Mijozning shaxsiy va tibbiy ma'lumotlarini kiriting.</p>
+      </div>
+    </div>
+
+
+
+    <form method="post" enctype="multipart/form-data" class="patient-form-layout">
+      {% csrf_token %}
+
+      <div class="patient-form-main">
+        <section class="patient-form-section">
+          <div class="patient-form-section-head">
+            <h3>Asosiy ma'lumotlar</h3>
+            <p>Bemor kartasi uchun zarur bo'lgan asosiy ma'lumotlar.</p>
+          </div>
+          <div class="patient-form-grid">
+            <div class="form-group form-group-full">
+              <label for="{{ form.full_name.id_for_label }}">{{ form.full_name.label }}</label>
+              {{ form.full_name }}
+              {% if form.full_name.errors %}<div class="form-error">{{ form.full_name.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+              <label for="{{ form.phone.id_for_label }}">{{ form.phone.label }}</label>
+              {{ form.phone }}
+              {% if form.phone.errors %}<div class="form-error">{{ form.phone.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+              <label for="{{ form.birth_date.id_for_label }}">{{ form.birth_date.label }}</label>
+              {{ form.birth_date }}
+              <small class="form-help">Sana kiritilsa yosh avtomatik hisoblanadi.</small>
+              {% if form.birth_date.errors %}<div class="form-error">{{ form.birth_date.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+              <label for="{{ form.arrived_at.id_for_label }}">{{ form.arrived_at.label }}</label>
+              {{ form.arrived_at }}
+              {% if form.arrived_at.errors %}<div class="form-error">{{ form.arrived_at.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+              <label for="{{ form.referred_by.id_for_label }}">{{ form.referred_by.label }}</label>
+              {{ form.referred_by }}
+              {% if form.referred_by.errors %}<div class="form-error">{{ form.referred_by.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="form-group form-group-full">
+              <label for="{{ form.address.id_for_label }}">{{ form.address.label }}</label>
+              {{ form.address }}
+              {{ form.latitude }}
+              {{ form.longitude }}
+              <small class="form-help">Manzil matnini yozing yoki o'ng tomondagi xaritadan nuqta tanlang.</small>
+              {% if form.address.errors %}<div class="form-error">{{ form.address.errors|striptags }}</div>{% endif %}
+            </div>
+          </div>
+        </section>
+
+        <section class="patient-form-section">
+          <div class="patient-form-section-head">
+            <h3>Tibbiy ma'lumotlar</h3>
+            <p>Shikoyat va klinik xavf omillarini qayd qiling.</p>
+          </div>
+          <div class="patient-form-grid">
+            <div class="form-group form-group-full">
+              <label for="{{ form.complaint.id_for_label }}">{{ form.complaint.label }}</label>
+              {{ form.complaint }}
+              <small class="form-help">Bemor aytgan asosiy shikoyatni qisqa yozing.</small>
+              {% if form.complaint.errors %}<div class="form-error">{{ form.complaint.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="form-group form-checkbox-group">
+              <label class="form-switch" for="{{ form.has_allergy.id_for_label }}">
+                {{ form.has_allergy }}
+                <span>Allergiyasi bormi</span>
+              </label>
+              {% if form.has_allergy.errors %}<div class="form-error">{{ form.has_allergy.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="form-group form-checkbox-group">
+              <label class="form-switch" for="{{ form.has_chronic_disease.id_for_label }}">
+                {{ form.has_chronic_disease }}
+                <span>Surunkali kasalligi bormi</span>
+              </label>
+              {% if form.has_chronic_disease.errors %}<div class="form-error">{{ form.has_chronic_disease.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="form-group form-group-full conditional-field" id="allergyDetailsGroup">
+              <label for="{{ form.allergy_details.id_for_label }}">{{ form.allergy_details.label }}</label>
+              {{ form.allergy_details }}
+              {% if form.allergy_details.errors %}<div class="form-error">{{ form.allergy_details.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="form-group form-group-full conditional-field" id="chronicDetailsGroup">
+              <label for="{{ form.chronic_disease_details.id_for_label }}">{{ form.chronic_disease_details.label }}</label>
+              {{ form.chronic_disease_details }}
+              {% if form.chronic_disease_details.errors %}<div class="form-error">{{ form.chronic_disease_details.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="form-group form-group-full">
+              <label for="{{ form.note.id_for_label }}">{{ form.note.label }}</label>
+              {{ form.note }}
+              {% if form.note.errors %}<div class="form-error">{{ form.note.errors|striptags }}</div>{% endif %}
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="patient-form-side">
+        <section class="patient-photo-card">
+          <div class="patient-photo-preview" id="patientPhotoPreview">
+            {% if form.instance.profile_image %}
+              <img src="{{ form.instance.profile_image.url }}" alt="{{ form.instance.full_name }}">
+            {% else %}
+              <div class="patient-photo-placeholder">
+                <span class="patient-photo-placeholder-mark">
+                  {{ form.instance.full_name|default:"Bemor"|slice:":1"|upper }}
+                </span>
+                <small>Rasm yuklanmagan</small>
+              </div>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            <label for="{{ form.profile_image.id_for_label }}">{{ form.profile_image.label }}</label>
+            {{ form.profile_image }}
+            {% if form.profile_image.errors %}<div class="form-error">{{ form.profile_image.errors|striptags }}</div>{% endif %}
+          </div>
+          <div class="patient-photo-tip">JPG, PNG yoki WEBP rasm yuklashingiz mumkin.</div>
+        </section>
+
+        <section class="patient-map-card">
+          <div class="patient-map-card-head">
+            <h3>Manzil xaritada</h3>
+            <button class="btn" id="useCurrentLocationButton" type="button">Joylashuvim</button>
+          </div>
+          <p class="patient-map-card-copy">Marker qo'yish uchun xaritani bosing. Tanlangan nuqta bemor kartasiga saqlanadi.</p>
+          <div id="patientLocationMap" class="patient-location-map"></div>
+          <div class="patient-location-meta">
+            <span class="patient-location-pill" id="patientLocationValue">Koordinata tanlanmagan</span>
+          </div>
+        </section>
+
+        <section class="patient-side-note">
+          <h3>Karta tayyor bo'ladi</h3>
+          <p>Saqlangandan keyin bemor uchun odontogram, tarix va to'lov yozuvlari bilan ishlash mumkin bo'ladi.</p>
+        </section>
+
+        <section class="patient-side-note is-soft">
+          <h3>Tez eslatma</h3>
+          <ul class="patient-note-list">
+            <li>Telefon va kelgan vaqtni aniq kiriting.</li>
+            <li>Allergiya bo'lsa tafsilotini yozing.</li>
+            <li>Kelish manbasi marketing tahlili uchun kerak bo'ladi.</li>
+          </ul>
+        </section>
+      </aside>
+
+      <div class="form-actions patient-form-actions">
+        <button class="btn btn-primary" type="submit">Saqlash</button>
+        <a class="btn" href="{% url 'doctor:customer_list' %}">Bekor qilish</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}
+
+{% block extra_js %}
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script>
+    (function () {
+      const imageInput = document.getElementById("{{ form.profile_image.id_for_label }}");
+      const photoPreview = document.getElementById("patientPhotoPreview");
+      const fullNameInput = document.getElementById("{{ form.full_name.id_for_label }}");
+      const allergyToggle = document.getElementById("{{ form.has_allergy.id_for_label }}");
+      const chronicToggle = document.getElementById("{{ form.has_chronic_disease.id_for_label }}");
+      const allergyDetailsGroup = document.getElementById("allergyDetailsGroup");
+      const chronicDetailsGroup = document.getElementById("chronicDetailsGroup");
+      const latitudeInput = document.getElementById("{{ form.latitude.id_for_label }}");
+      const longitudeInput = document.getElementById("{{ form.longitude.id_for_label }}");
+      const addressInput = document.getElementById("{{ form.address.id_for_label }}");
+      const locationValue = document.getElementById("patientLocationValue");
+      const mapElement = document.getElementById("patientLocationMap");
+      const useCurrentLocationButton = document.getElementById("useCurrentLocationButton");
+
+      function renderPlaceholder() {
+        const initial = (fullNameInput?.value || "B").trim().charAt(0).toUpperCase() || "B";
+        return `
+          <div class="patient-photo-placeholder">
+            <span class="patient-photo-placeholder-mark">${initial}</span>
+            <small>Rasm yuklanmagan</small>
+          </div>
+        `;
+      }
+
+      function toggleConditional(group, input) {
+        if (!group || !input) return;
+        group.classList.toggle("is-hidden", !input.checked);
+      }
+
+      function formatCoordinate(value) {
+        return Number(value).toFixed(6);
+      }
+
+      function updateLocationValue(lat, lng) {
+        if (!locationValue) return;
+        if (lat == null || lng == null || Number.isNaN(Number(lat)) || Number.isNaN(Number(lng))) {
+          locationValue.textContent = "Koordinata tanlanmagan";
+          return;
+        }
+        locationValue.textContent = `Lat: ${formatCoordinate(lat)} • Lng: ${formatCoordinate(lng)}`;
+      }
+
+      function attachMap() {
+        if (!mapElement || typeof L === "undefined") {
+          return;
+        }
+
+        const initialLat = latitudeInput && latitudeInput.value ? Number(latitudeInput.value) : 41.311081;
+        const initialLng = longitudeInput && longitudeInput.value ? Number(longitudeInput.value) : 69.240562;
+        const hasInitialMarker = Boolean(latitudeInput?.value && longitudeInput?.value);
+
+        const map = L.map(mapElement).setView([initialLat, initialLng], hasInitialMarker ? 14 : 11);
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        let marker = null;
+
+        function setLocation(lat, lng) {
+          if (latitudeInput) latitudeInput.value = Number(lat).toFixed(6);
+          if (longitudeInput) longitudeInput.value = Number(lng).toFixed(6);
+          updateLocationValue(lat, lng);
+
+          if (!marker) {
+            marker = L.marker([lat, lng]).addTo(map);
+          } else {
+            marker.setLatLng([lat, lng]);
+          }
+
+          map.setView([lat, lng], Math.max(map.getZoom(), 14));
+          if (addressInput && !addressInput.value.trim()) {
+            addressInput.value = `Koordinata: ${Number(lat).toFixed(6)}, ${Number(lng).toFixed(6)}`;
+          }
+        }
+
+        if (hasInitialMarker) {
+          setLocation(initialLat, initialLng);
+        } else {
+          updateLocationValue(null, null);
+        }
+
+        map.on("click", function (event) {
+          const { lat, lng } = event.latlng;
+          setLocation(lat, lng);
+        });
+
+        useCurrentLocationButton?.addEventListener("click", function () {
+          if (!navigator.geolocation) {
+            updateLocationValue(null, null);
+            return;
+          }
+          navigator.geolocation.getCurrentPosition(function (position) {
+            setLocation(position.coords.latitude, position.coords.longitude);
+          });
+        });
+
+        window.setTimeout(function () {
+          map.invalidateSize();
+        }, 180);
+      }
+
+      if (imageInput && photoPreview) {
+        imageInput.addEventListener("change", function () {
+          const file = imageInput.files && imageInput.files[0];
+          if (!file) {
+            photoPreview.innerHTML = renderPlaceholder();
+            return;
+          }
+          const url = URL.createObjectURL(file);
+          photoPreview.innerHTML = `<img src="${url}" alt="Bemor rasmi preview">`;
+        });
+      }
+
+      fullNameInput?.addEventListener("input", function () {
+        if (photoPreview && !photoPreview.querySelector("img")) {
+          photoPreview.innerHTML = renderPlaceholder();
+        }
+      });
+
+      toggleConditional(allergyDetailsGroup, allergyToggle);
+      toggleConditional(chronicDetailsGroup, chronicToggle);
+
+      allergyToggle?.addEventListener("change", function () {
+        toggleConditional(allergyDetailsGroup, allergyToggle);
+      });
+      chronicToggle?.addEventListener("change", function () {
+        toggleConditional(chronicDetailsGroup, chronicToggle);
+      });
+
+      attachMap();
+    })();
+  </script>
+{% endblock %}

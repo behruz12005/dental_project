@@ -1,0 +1,248 @@
+{% load static %}
+<!doctype html>
+<html lang="uz">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}DentCare Pro{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'doctor/doctor.css' %}">
+    <link rel="stylesheet" href="{% static 'doctor/dashboard.css' %}">
+    {% block extra_head %}{% endblock %}
+  </head>
+  <body>
+    {% url 'doctor:dashboard' as dashboard_url %}
+    {% url 'doctor:customer_list' as customer_list_url %}
+    {% url 'doctor:customer_create' as customer_create_url %}
+    {% url 'doctor:calendar' as calendar_url %}
+    {% url 'doctor:staff_list' as staff_list_url %}
+    {% url 'doctor:logout' as logout_url %}
+    {% url 'doctor:clinic_setup' as clinic_setup_url %}
+    {% url 'doctor:clinic_create' as clinic_create_url %}
+    {% url 'doctor:clinic_switch' as clinic_switch_url %}
+
+    <div class="admin-layout">
+      <div class="admin-sidebar-overlay" id="adminSidebarOverlay"></div>
+
+      <aside class="admin-sidebar" id="adminSidebar">
+        <div class="admin-sidebar-header">
+          <div class="admin-sidebar-logo">DC</div>
+          <div>
+            <h2>{{ current_clinic.name|default:"DentCare Pro" }}</h2>
+            <p>
+              {% if current_membership %}
+                {{ current_membership.get_role_display }}
+              {% else %}
+                Stomatologiya klinikasi
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+        <nav class="admin-sidebar-nav">
+          <div class="admin-nav-title">Asosiy</div>
+          <a
+            href="{{ dashboard_url }}"
+            class="admin-nav-item{% if request.path == dashboard_url %} is-active{% endif %}"
+            data-page-title="Dashboard"
+          >
+            <span class="admin-nav-icon" aria-hidden="true">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="3" width="7" height="8" rx="1"></rect>
+    <rect x="14" y="3" width="7" height="5" rx="1"></rect>
+    <rect x="14" y="12" width="7" height="9" rx="1"></rect>
+    <rect x="3" y="15" width="7" height="6" rx="1"></rect>
+  </svg>
+</span>
+              <span class="admin-nav-label">Dashboard</span>
+          </a>
+          <a
+            href="{{ calendar_url }}"
+            class="admin-nav-item{% if request.path == calendar_url or '/calendar/' in request.path %} is-active{% endif %}"
+            data-page-title="Qabul jadvali"
+          >
+            <span class="admin-nav-icon" aria-hidden="true">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+    <path d="M16 2v4"></path>
+    <path d="M8 2v4"></path>
+    <path d="M3 10h18"></path>
+  </svg>
+</span>
+              <span class="admin-nav-label">Qabul jadvali</span>
+          </a>
+          <a
+            href="{{ customer_list_url }}"
+            class="admin-nav-item{% if request.path == customer_list_url or '/customers/' in request.path %} is-active{% endif %}"
+            data-page-title="Mijozlar"
+          >
+            <span class="admin-nav-icon" aria-hidden="true">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+    <circle cx="9" cy="7" r="4"></circle>
+    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+  </svg>
+</span>
+              <span class="admin-nav-label">Mijozlar</span>
+          </a>
+          {% if can_add_customers %}
+            <a
+              href="{{ customer_create_url }}"
+              class="admin-nav-item{% if request.path == customer_create_url %} is-active{% endif %}"
+              data-page-title="Yangi mijoz"
+            >
+              <span class="admin-nav-icon" aria-hidden="true">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+    <circle cx="9" cy="7" r="4"></circle>
+    <path d="M19 8v6"></path>
+    <path d="M16 11h6"></path>
+  </svg>
+</span>
+              <span class="admin-nav-label">Yangi mijoz</span>
+            </a>
+          {% endif %}
+          {% if can_manage_staff %}
+            <div class="admin-nav-title">Boshqaruv</div>
+            <a
+              href="{{ staff_list_url }}"
+              class="admin-nav-item{% if request.path == staff_list_url %} is-active{% endif %}"
+              data-page-title="Xodimlar"
+            >
+              <span class="admin-nav-icon" aria-hidden="true">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+    <circle cx="9" cy="7" r="4"></circle>
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+  </svg>
+</span>
+              <span class="admin-nav-label">Xodimlar</span>
+            </a>
+            <a
+              href="{{ clinic_create_url }}"
+              class="admin-nav-item{% if request.path == clinic_create_url %} is-active{% endif %}"
+              data-page-title="Yangi klinika"
+            >
+              <span class="admin-nav-icon" aria-hidden="true">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 10.5 12 3l9 7.5"></path>
+    <path d="M5 9.5V21h14V9.5"></path>
+    <path d="M9 21v-6h6v6"></path>
+  </svg>
+</span>
+              <span class="admin-nav-label">Yangi klinika</span>
+            </a>
+          {% endif %}
+          {% if not current_membership %}
+            <a
+              href="{{ clinic_setup_url }}"
+              class="admin-nav-item{% if request.path == clinic_setup_url %} is-active{% endif %}"
+              data-page-title="Klinika sozlash"
+            >
+              <span class="admin-nav-icon" aria-hidden="true">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3"></circle>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.08a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.08a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+  </svg>
+</span>
+              <span class="admin-nav-label">Klinika sozlash</span>
+            </a>
+          {% endif %}
+        </nav>
+
+        <div class="admin-sidebar-footer">
+          <div class="admin-avatar">AK</div>
+          <div>
+            <h4>{{ request.user.get_full_name|default:request.user.username }}</h4>
+            <p>
+              {% if current_membership %}
+                {{ current_membership.get_role_display }}
+              {% else %}
+                User
+              {% endif %}
+            </p>
+          </div>
+        </div>
+      </aside>
+
+      <main class="admin-main">
+        <header class="admin-topbar">
+          <div class="admin-topbar-left">
+            <button class="admin-menu-btn" id="adminMenuBtn" type="button" aria-label="Menyuni ochish" aria-controls="adminSidebar" aria-expanded="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                <path d="M4 7h16"></path>
+                <path d="M4 12h16"></path>
+                <path d="M4 17h16"></path>
+              </svg>
+            </button>
+            <button class="admin-collapse-btn" id="adminSidebarToggle" type="button" aria-label="Yon panelni yig'ish yoki ochish" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="16" rx="3"></rect>
+                <path d="M9 4v16"></path>
+                <path d="m14 9 4 3-4 3"></path>
+              </svg>
+            </button>
+            <div>
+              <h1 id="adminPageTitle">{% block page_heading %}{{ page_heading|default:"Dashboard" }}{% endblock %}</h1>
+              <p class="admin-topbar-subtitle">{% block page_subtitle %}{{ page_subtitle|default:"Klinika boshqaruv paneli." }}{% endblock %}</p>
+            </div>
+          </div>
+
+          <div class="admin-topbar-right">
+            <label class="admin-search-box">
+              <span>Qidiruv</span>
+              <input id="adminSearchInput" type="text" placeholder="Sahifadan qidirish...">
+            </label>
+            {% if available_memberships %}
+              <form class="clinic-switcher" method="post" action="{{ clinic_switch_url }}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <select name="clinic_id" class="clinic-switcher-select" onchange="this.form.submit()">
+                  {% for membership_item in available_memberships %}
+                    <option value="{{ membership_item.clinic_id }}"{% if current_clinic and membership_item.clinic_id == current_clinic.id %} selected{% endif %}>
+                      {{ membership_item.clinic.name }} · {{ membership_item.get_role_display }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </form>
+            {% endif %}
+            <a class="btn" href="{{ logout_url }}">Chiqish</a>
+            <div class="admin-profile-pill">
+              <div class="admin-profile-avatar">AK</div>
+              <div>
+                <h4>{{ request.user.get_full_name|default:request.user.username }}</h4>
+                <p>
+                  {% if current_clinic %}
+                    {{ current_clinic.name }}
+                  {% else %}
+                    Doctor panel
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <section class="admin-content" id="adminContentArea">
+          {% if messages %}
+            <div class="flash-stack">
+              {% for message in messages %}
+                <div class="flash flash-{{ message.tags|default:'info' }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <main class="doctor-main">
+            {% block content %}{% endblock %}
+          </main>
+        </section>
+      </main>
+    </div>
+
+    <script src="{% static 'doctor/dashboard.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>
+
+

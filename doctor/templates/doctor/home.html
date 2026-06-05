@@ -1,0 +1,198 @@
+{% extends 'doctor/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+
+{% block content %}
+  <section class="overview-hero">
+    <div>
+      <div class="eyebrow">Bugungi nazorat</div>
+      <h2>{{ current_clinic.name }}</h2>
+      <p>Bugungi qabul, klinikalar va jamoa yuklamasi bir joyda ko'rinadi.</p>
+    </div>
+    <div class="overview-hero-actions">
+      <a class="btn btn-primary" href="{% url 'doctor:calendar' %}">Kalendarni ochish</a>
+      {% if can_add_customers %}
+        <a class="btn" href="{% url 'doctor:customer_create' %}">Mijoz qo'shish</a>
+      {% endif %}
+      {% if can_manage_staff %}
+        <a class="btn" href="{% url 'doctor:clinic_create' %}">Yangi klinika</a>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="overview-grid">
+    <article class="overview-stat-card">
+      <div class="overview-stat-icon is-cyan">MJ</div>
+      <div>
+        <p>Jami mijozlar</p>
+        <h2>{{ stats.customers_total }}</h2>
+        <span>Aktiv klinika bo'yicha ro'yxat</span>
+      </div>
+    </article>
+
+    <article class="overview-stat-card">
+      <div class="overview-stat-icon is-blue">QD</div>
+      <div>
+        <p>Bugungi qabul</p>
+        <h2>{{ stats.today_appointments }}</h2>
+        <span>Bugun kalendarga qo'yilgan yozuvlar</span>
+      </div>
+    </article>
+
+    <article class="overview-stat-card">
+      <div class="overview-stat-icon is-green">SM</div>
+      <div>
+        <p>Bugungi to'lov</p>
+        <h2>{{ stats.today_payments }} <small>so'm</small></h2>
+        <span>Bugun yozilgan to'lovlar yig'indisi</span>
+      </div>
+    </article>
+
+    <article class="overview-stat-card">
+      <div class="overview-stat-icon is-amber">KL</div>
+      <div>
+        <p>Klinikalar soni</p>
+        <h2>{{ stats.clinics_total }}</h2>
+        <span>Ushbu userga biriktirilgan klinikalar</span>
+      </div>
+    </article>
+  </section>
+
+  <section class="overview-panels overview-panels-wide">
+    <article class="overview-panel">
+      <div class="overview-panel-head">
+        <div>
+          <h3>Bugungi jadval</h3>
+          <p>Bugun keladigan bemorlar va biriktirilgan xodimlar</p>
+        </div>
+        <a class="btn" href="{% url 'doctor:calendar' %}">To'liq calendar</a>
+      </div>
+
+      <div class="today-agenda-list">
+        {% for appointment in today_appointments %}
+          <article class="today-agenda-item">
+            <div class="today-agenda-time">{{ appointment.starts_at|date:'H:i' }}</div>
+            <div class="today-agenda-copy">
+              <strong>{{ appointment.customer.full_name|default:"Bemor biriktirilmagan" }}</strong>
+              <p>{{ appointment.assigned_to.get_full_name|default:appointment.assigned_to.username|default:"Biriktirilmagan" }}</p>
+            </div>
+            <div class="today-agenda-meta">
+              <span class="today-agenda-badge">{{ appointment.get_status_display }}</span>
+              {% if appointment.customer and appointment.customer.phone %}
+                <small>{{ appointment.customer.phone }}</small>
+              {% endif %}
+            </div>
+          </article>
+        {% empty %}
+          <div class="overview-empty-card">Bugunga hali qabul yozuvi qo'shilmagan.</div>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="overview-panel">
+      <div class="overview-panel-head">
+        <div>
+          <h3>Xodimlar bo'yicha yuklama</h3>
+          <p>Bugun qaysi xodimga nechta bemor biriktirilgan</p>
+        </div>
+        {% if can_manage_staff %}
+          <a class="btn" href="{% url 'doctor:staff_list' %}">Xodimlar</a>
+        {% endif %}
+      </div>
+
+      <div class="staff-schedule-list">
+        {% for staff in staff_schedule %}
+          <article class="staff-schedule-item">
+            <div class="staff-schedule-avatar">{{ staff.name|slice:":1"|upper }}</div>
+            <div class="staff-schedule-copy">
+              <strong>{{ staff.name }}</strong>
+              <span>{{ staff.items|length }} ta qabul</span>
+            </div>
+            <div class="staff-schedule-stack">
+              {% for appointment in staff.items|slice:":3" %}
+                <small>{{ appointment.starts_at|date:'H:i' }} · {{ appointment.customer.full_name|default:"Bemor yo'q" }}</small>
+              {% endfor %}
+            </div>
+          </article>
+        {% empty %}
+          <div class="overview-empty-card">Bugungi xodim jadvali hali bo'sh.</div>
+        {% endfor %}
+      </div>
+    </article>
+  </section>
+
+  <section class="overview-panels">
+    <article class="overview-panel">
+      <div class="overview-panel-head">
+        <div>
+          <h3>Oxirgi mijozlar</h3>
+          <p>So'nggi qo'shilgan bemorlar ro'yxati</p>
+        </div>
+        <a class="btn btn-primary" href="{% url 'doctor:customer_list' %}">Mijozlar</a>
+      </div>
+
+      <div class="overview-table-wrap">
+        <table class="overview-table">
+          <thead>
+            <tr>
+              <th>F.I.SH.</th>
+              <th>Telefon</th>
+              <th>Yaratilgan</th>
+              <th>Amal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for customer in recent_customers %}
+              <tr>
+                <td>{{ customer.full_name }}</td>
+                <td>{{ customer.phone|default:"-" }}</td>
+                <td>{{ customer.created_at|date:'d.m.Y H:i' }}</td>
+                <td>
+                  <a class="btn btn-small" href="{% url 'doctor:customer_odontogram' customer.pk %}">Ochish</a>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="4" class="empty-row">Hali mijoz qo'shilmagan.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="overview-panel">
+      <div class="overview-panel-head">
+        <div>
+          <h3>Oxirgi tish tarixi</h3>
+          <p>Eng so'nggi odontogram o'zgarishlari</p>
+        </div>
+        <a class="btn" href="{% url 'doctor:customer_list' %}">Mijozlar</a>
+      </div>
+
+      <div class="overview-history-list">
+        {% for entry in recent_history %}
+          <div class="overview-history-item">
+            <div class="overview-history-top">
+              <strong>{{ entry.customer.full_name }}</strong>
+              <span>{{ entry.created_at|date:'d.m.Y H:i' }}</span>
+            </div>
+            <div class="overview-history-meta">
+              <span>{{ entry.tooth_no }}-tish</span>
+              <span>{{ entry.get_source_display }}</span>
+              <span>{{ entry.get_event_type_display }}</span>
+            </div>
+            <p>{{ entry.summary }}</p>
+            <a class="overview-inline-link" href="{% url 'doctor:customer_odontogram' entry.customer.pk %}">Kartani ochish</a>
+          </div>
+        {% empty %}
+          <div class="overview-empty-card">Hali tarix yozuvlari mavjud emas.</div>
+        {% endfor %}
+      </div>
+    </article>
+  </section>
+{% endblock %}
+
+

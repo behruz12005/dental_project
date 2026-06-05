@@ -1,0 +1,15 @@
+{% extends 'doctor/base.html' %}
+
+{% block title %}Odontogramni tozalash{% endblock %}
+
+{% block content %}
+  <section class="page-card confirm-card">
+    <h1>Odontogramni tozalash</h1>
+    <p><strong>{{ customer.full_name }}</strong> uchun barcha tish belgilarini standart holatga qaytarmoqchimisiz?</p>
+    <form method="post" class="form-actions">
+      {% csrf_token %}
+      <button class="btn btn-warn" type="submit">Ha, reset qilish</button>
+      <a class="btn" href="{% url 'doctor:customer_odontogram' customer.pk %}">Bekor qilish</a>
+    </form>
+  </section>
+{% endblock %}
