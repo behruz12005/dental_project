@@ -40,6 +40,7 @@
 
         <nav class="admin-sidebar-nav">
           <div class="admin-nav-title">Asosiy</div>
+          {% if can_view_dashboard %}
           <a
             href="{{ dashboard_url }}"
             class="admin-nav-item{% if request.path == dashboard_url %} is-active{% endif %}"
@@ -55,6 +56,8 @@
 </span>
               <span class="admin-nav-label">Dashboard</span>
           </a>
+          {% endif %}
+          {% if can_view_calendar %}
           <a
             href="{{ calendar_url }}"
             class="admin-nav-item{% if request.path == calendar_url or '/calendar/' in request.path %} is-active{% endif %}"
@@ -70,6 +73,8 @@
 </span>
               <span class="admin-nav-label">Qabul jadvali</span>
           </a>
+          {% endif %}
+          {% if can_view_customers %}
           <a
             href="{{ customer_list_url }}"
             class="admin-nav-item{% if request.path == customer_list_url or '/customers/' in request.path %} is-active{% endif %}"
@@ -85,6 +90,7 @@
 </span>
               <span class="admin-nav-label">Mijozlar</span>
           </a>
+          {% endif %}
           {% if can_add_customers %}
             <a
               href="{{ customer_create_url }}"

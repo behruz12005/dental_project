@@ -45,6 +45,12 @@ class ClinicMembership(models.Model):
     clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name="memberships")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="clinic_memberships")
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_STAFF)
+    can_view_dashboard = models.BooleanField("Dashboard", default=True)
+    can_view_customers = models.BooleanField("Mijozlar ro'yxati", default=True)
+    can_add_customers = models.BooleanField("Mijoz qo'shish", default=True)
+    can_view_calendar = models.BooleanField("Qabul jadvali", default=True)
+    can_edit_medical_records = models.BooleanField("Tibbiy kartani tahrirlash", default=False)
+    can_manage_staff = models.BooleanField("Xodimlarni boshqarish", default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -59,6 +65,11 @@ class ClinicMembership(models.Model):
     @property
     def is_owner(self):
         return self.role == self.ROLE_OWNER
+
+    def has_page_permission(self, permission_name):
+        if self.is_owner:
+            return True
+        return bool(getattr(self, permission_name, False))
 
 
 class Customer(models.Model):

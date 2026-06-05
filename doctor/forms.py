@@ -53,10 +53,57 @@ class StaffUserCreateForm(UserCreationForm):
         label="Parol tasdiqlash",
         widget=forms.PasswordInput(attrs={"class": "form-input", "placeholder": "Parolni qayta kiriting"}),
     )
+    can_view_dashboard = forms.BooleanField(
+        label="Dashboard",
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={"class": "form-checkbox"}),
+    )
+    can_view_customers = forms.BooleanField(
+        label="Mijozlar ro'yxati",
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={"class": "form-checkbox"}),
+    )
+    can_add_customers = forms.BooleanField(
+        label="Mijoz qo'shish",
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={"class": "form-checkbox"}),
+    )
+    can_view_calendar = forms.BooleanField(
+        label="Qabul jadvali",
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={"class": "form-checkbox"}),
+    )
+    can_edit_medical_records = forms.BooleanField(
+        label="Tibbiy kartani tahrirlash",
+        required=False,
+        widget=forms.CheckboxInput(attrs={"class": "form-checkbox"}),
+    )
+    can_manage_staff = forms.BooleanField(
+        label="Xodimlarni boshqarish",
+        required=False,
+        widget=forms.CheckboxInput(attrs={"class": "form-checkbox"}),
+    )
 
     class Meta:
         model = User
-        fields = ["first_name", "last_name", "username", "email", "password1", "password2"]
+        fields = [
+            "first_name",
+            "last_name",
+            "username",
+            "email",
+            "password1",
+            "password2",
+            "can_view_dashboard",
+            "can_view_customers",
+            "can_add_customers",
+            "can_view_calendar",
+            "can_edit_medical_records",
+            "can_manage_staff",
+        ]
 
 
 class CustomerForm(forms.ModelForm):

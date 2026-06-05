@@ -123,6 +123,16 @@ def get_current_clinic(user, session=None):
 def role_redirect(user):
     membership = get_current_membership(user)
     if membership:
+        if user.is_superuser or membership.has_page_permission("can_view_dashboard"):
+            return "doctor:dashboard"
+        if membership.has_page_permission("can_view_calendar"):
+            return "doctor:calendar"
+        if membership.has_page_permission("can_view_customers"):
+            return "doctor:customer_list"
+        if membership.has_page_permission("can_add_customers"):
+            return "doctor:customer_create"
+        if membership.has_page_permission("can_manage_staff"):
+            return "doctor:staff_list"
         return "doctor:dashboard"
     return "doctor:clinic_setup"
 
@@ -138,6 +148,23 @@ def clinic_required(view_func):
         request.current_clinic = membership.clinic
         return view_func(request, *args, **kwargs)
     return wrapped
+
+
+def page_permission_required(permission_name):
+    def decorator(view_func):
+        @wraps(view_func)
+        @login_required
+        def wrapped(request, *args, **kwargs):
+            membership = get_current_membership(request.user, session=request.session)
+            if not membership:
+                return redirect("doctor:clinic_setup")
+            if not request.user.is_superuser and not membership.has_page_permission(permission_name):
+                return HttpResponseForbidden("Bu sahifaga kirish uchun ruxsat yo'q.")
+            request.clinic_membership = membership
+            request.current_clinic = membership.clinic
+            return view_func(request, *args, **kwargs)
+        return wrapped
+    return decorator
 
 
 def owner_required(view_func):
@@ -162,19 +189,25 @@ def get_customer_for_request(request, pk):
 def clinic_context(request, **extra):
     membership = getattr(request, "clinic_membership", get_current_membership(request.user, session=request.session))
     clinic = getattr(request, "current_clinic", membership.clinic if membership else None)
-    can_edit_medical_records = bool(
-        request.user.is_authenticated
-        and (request.user.is_superuser or (membership and membership.is_owner))
-    )
+    is_platform_admin = bool(request.user.is_authenticated and request.user.is_superuser)
+    can_view_dashboard = bool(is_platform_admin or (membership and membership.has_page_permission("can_view_dashboard")))
+    can_view_customers = bool(is_platform_admin or (membership and membership.has_page_permission("can_view_customers")))
+    can_add_customers = bool(is_platform_admin or (membership and membership.has_page_permission("can_add_customers")))
+    can_view_calendar = bool(is_platform_admin or (membership and membership.has_page_permission("can_view_calendar")))
+    can_edit_medical_records = bool(is_platform_admin or (membership and membership.has_page_permission("can_edit_medical_records")))
+    can_manage_staff = bool(is_platform_admin or (membership and membership.has_page_permission("can_manage_staff")))
     memberships = list(request.user.clinic_memberships.select_related("clinic").order_by("clinic__name", "id")) if request.user.is_authenticated else []
     base = {
         "current_membership": membership,
         "current_clinic": clinic,
         "available_memberships": memberships,
+        "can_view_dashboard": can_view_dashboard,
+        "can_view_customers": can_view_customers,
+        "can_view_calendar": can_view_calendar,
         "can_manage_patients": can_edit_medical_records,
         "can_edit_medical_records": can_edit_medical_records,
-        "can_manage_staff": can_edit_medical_records,
-        "can_add_customers": bool(request.user.is_authenticated and membership),
+        "can_manage_staff": can_manage_staff,
+        "can_add_customers": can_add_customers,
     }
     base.update(extra)
     return base
@@ -281,7 +314,7 @@ def clinic_switch(request):
     return redirect(redirect_url)
 
 
-@clinic_required
+@page_permission_required("can_view_dashboard")
 def dashboard(request):
     clinic = request.current_clinic
     today = timezone.localdate()
@@ -332,7 +365,7 @@ def dashboard(request):
     return render(request, "doctor/home.html", context)
 
 
-@clinic_required
+@page_permission_required("can_view_customers")
 def customer_list(request):
     query = (request.GET.get("q") or "").strip()
     referred_by = (request.GET.get("referred_by") or "").strip()
@@ -363,7 +396,7 @@ def customer_list(request):
     )
 
 
-@clinic_required
+@page_permission_required("can_add_customers")
 def customer_create(request):
     form = CustomerForm(request.POST or None, request.FILES or None)
     if request.method == "POST" and form.is_valid():
@@ -373,7 +406,9 @@ def customer_create(request):
         messages.success(request, "Mijoz qo'shildi.")
         if request.clinic_membership.is_owner or request.user.is_superuser:
             return redirect("doctor:customer_odontogram", pk=customer.pk)
-        return redirect("doctor:calendar")
+        if request.clinic_membership.has_page_permission("can_view_calendar"):
+            return redirect("doctor:calendar")
+        return redirect("doctor:customer_list")
 
     return render(
         request,
@@ -388,7 +423,7 @@ def customer_create(request):
     )
 
 
-@owner_required
+@page_permission_required("can_edit_medical_records")
 def customer_update(request, pk):
     customer = get_customer_for_request(request, pk)
     form = CustomerForm(request.POST or None, request.FILES or None, instance=customer)
@@ -411,7 +446,7 @@ def customer_update(request, pk):
     )
 
 
-@owner_required
+@page_permission_required("can_edit_medical_records")
 def customer_delete(request, pk):
     customer = get_customer_for_request(request, pk)
     if request.method == "POST":
@@ -431,7 +466,7 @@ def customer_delete(request, pk):
     )
 
 
-@owner_required
+@page_permission_required("can_edit_medical_records")
 def customer_reset(request, pk):
     customer = get_customer_for_request(request, pk)
     if request.method == "POST":
@@ -464,7 +499,7 @@ def customer_reset(request, pk):
     )
 
 
-@clinic_required
+@page_permission_required("can_view_customers")
 def customer_odontogram(request, pk):
     customer = get_object_or_404(Customer.objects.prefetch_related("tooth_states"), pk=pk, clinic=request.current_clinic)
     initial_payload = build_customer_payload(customer)
@@ -482,7 +517,7 @@ def customer_odontogram(request, pk):
     )
 
 
-@owner_required
+@page_permission_required("can_edit_medical_records")
 @require_POST
 def customer_odontogram_save(request, pk):
     customer = get_customer_for_request(request, pk)
@@ -498,7 +533,7 @@ def customer_odontogram_save(request, pk):
     return JsonResponse({"ok": True, "message": "Odontogram saqlandi.", "historyCount": history_count})
 
 
-@clinic_required
+@page_permission_required("can_view_customers")
 def customer_history_feed(request, pk):
     customer = get_customer_for_request(request, pk)
     tooth_no = parse_tooth_no(request.GET.get("tooth_no"))
@@ -512,7 +547,7 @@ def customer_history_feed(request, pk):
     return JsonResponse({"ok": True, "toothNo": tooth_no, "items": [serialize_history_entry(entry) for entry in entries]})
 
 
-@owner_required
+@page_permission_required("can_edit_medical_records")
 @require_POST
 def customer_history_add(request, pk):
     customer = get_customer_for_request(request, pk)
@@ -539,7 +574,7 @@ def customer_history_add(request, pk):
     return JsonResponse({"ok": True, "item": serialize_history_entry(entry)})
 
 
-@owner_required
+@page_permission_required("can_edit_medical_records")
 @require_POST
 def customer_history_update(request, pk, history_id):
     customer = get_customer_for_request(request, pk)
@@ -585,7 +620,7 @@ def customer_history_update(request, pk, history_id):
     return JsonResponse({"ok": True, "item": serialize_history_entry(entry), "message": "Tarix yozuvi yangilandi."})
 
 
-@owner_required
+@page_permission_required("can_manage_staff")
 def staff_list(request):
     clinic = request.current_clinic
     form = StaffUserCreateForm(request.POST or None)
@@ -595,6 +630,12 @@ def staff_list(request):
             clinic=clinic,
             user=user,
             role=ClinicMembership.ROLE_STAFF,
+            can_view_dashboard=form.cleaned_data["can_view_dashboard"],
+            can_view_customers=form.cleaned_data["can_view_customers"],
+            can_add_customers=form.cleaned_data["can_add_customers"],
+            can_view_calendar=form.cleaned_data["can_view_calendar"],
+            can_edit_medical_records=form.cleaned_data["can_edit_medical_records"],
+            can_manage_staff=form.cleaned_data["can_manage_staff"],
         )
         messages.success(request, "Xodim user yaratildi.")
         return redirect("doctor:staff_list")
@@ -614,7 +655,7 @@ def staff_list(request):
     )
 
 
-@clinic_required
+@page_permission_required("can_view_calendar")
 def calendar_view(request):
     clinic = request.current_clinic
     staff_queryset = get_clinic_users_queryset(clinic)
@@ -641,7 +682,7 @@ def calendar_view(request):
     )
 
 
-@clinic_required
+@page_permission_required("can_view_calendar")
 def appointment_events(request):
     clinic = request.current_clinic
     events = clinic.appointments.select_related("customer", "assigned_to")
@@ -656,7 +697,7 @@ def appointment_events(request):
     return JsonResponse([serialize_appointment_event(item) for item in events], safe=False)
 
 
-@clinic_required
+@page_permission_required("can_view_calendar")
 @require_POST
 def appointment_create(request):
     clinic = request.current_clinic
@@ -683,7 +724,7 @@ def appointment_create(request):
     return JsonResponse({"ok": True, "event": serialize_appointment_event(appointment)})
 
 
-@clinic_required
+@page_permission_required("can_view_calendar")
 @require_POST
 def appointment_update(request, appointment_id):
     clinic = request.current_clinic
@@ -710,7 +751,7 @@ def appointment_update(request, appointment_id):
     return JsonResponse({"ok": True, "event": serialize_appointment_event(appointment)})
 
 
-@clinic_required
+@page_permission_required("can_view_calendar")
 @require_POST
 def appointment_delete(request, appointment_id):
     clinic = request.current_clinic

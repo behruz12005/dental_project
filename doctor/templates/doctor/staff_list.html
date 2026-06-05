@@ -52,6 +52,18 @@
               <div class="staff-member-copy">
                 <strong>{{ membership.user.get_full_name|default:membership.user.username }}</strong>
                 <span>{{ membership.user.username }}</span>
+                <div class="staff-permission-list">
+                  {% if membership.is_owner %}
+                    <em>Hammasi</em>
+                  {% else %}
+                    {% if membership.can_view_dashboard %}<em>Dashboard</em>{% endif %}
+                    {% if membership.can_view_customers %}<em>Mijozlar</em>{% endif %}
+                    {% if membership.can_add_customers %}<em>Mijoz qo'shish</em>{% endif %}
+                    {% if membership.can_view_calendar %}<em>Qabul jadvali</em>{% endif %}
+                    {% if membership.can_edit_medical_records %}<em>Tibbiy karta</em>{% endif %}
+                    {% if membership.can_manage_staff %}<em>Xodimlar</em>{% endif %}
+                  {% endif %}
+                </div>
               </div>
               <span class="staff-role-badge{% if membership.is_owner %} is-owner{% endif %}">{{ membership.get_role_display }}</span>
             </article>

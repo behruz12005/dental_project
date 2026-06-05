@@ -11,8 +11,28 @@ class ClinicAdmin(admin.ModelAdmin):
 
 @admin.register(ClinicMembership)
 class ClinicMembershipAdmin(admin.ModelAdmin):
-    list_display = ("clinic", "user", "role", "created_at")
-    list_filter = ("role", "clinic")
+    list_display = (
+        "clinic",
+        "user",
+        "role",
+        "can_view_dashboard",
+        "can_view_customers",
+        "can_add_customers",
+        "can_view_calendar",
+        "can_edit_medical_records",
+        "can_manage_staff",
+        "created_at",
+    )
+    list_filter = (
+        "role",
+        "clinic",
+        "can_view_dashboard",
+        "can_view_customers",
+        "can_add_customers",
+        "can_view_calendar",
+        "can_edit_medical_records",
+        "can_manage_staff",
+    )
     search_fields = ("clinic__name", "user__username", "user__first_name", "user__last_name")
 
 
